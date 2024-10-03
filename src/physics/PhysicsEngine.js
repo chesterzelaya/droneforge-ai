@@ -205,32 +205,39 @@ class PhysicsEngine {
     const thrustForce = (throttle + 1) * 0.5 * maxThrust; // Map [-1, 1] to [0, maxThrust]
     const torqueStrength = 0.5; // Reduced torque strength for stability
     
-    // Apply thrust relative to drone's orientation
-    const thrustLocal = new this.Ammo.btVector3(0, thrustForce, 0);
+    // Get drone's current orientation
     const droneTransform = this.droneRigidBody.getWorldTransform();
     const rotation = droneTransform.getRotation();
     
     // Convert Ammo quaternion to Three.js quaternion
     const ammoQuat = rotation;
     const threeQuat = new THREE.Quaternion(ammoQuat.x(), ammoQuat.y(), ammoQuat.z(), ammoQuat.w());
-
-    // Create a Three.js Vector for thrust and apply rotation
-    const thrustWorldVector = new THREE.Vector3(thrustLocal.x(), thrustLocal.y(), thrustLocal.z()).applyQuaternion(threeQuat);
-
+    
+    // Calculate local thrust vector and rotate it to world space
+    const thrustLocal = new THREE.Vector3(0, thrustForce, 0);
+    const thrustWorldVector = thrustLocal.applyQuaternion(threeQuat);
+    
     // Convert back to Ammo vector
     const thrustWorld = new this.Ammo.btVector3(thrustWorldVector.x, thrustWorldVector.y, thrustWorldVector.z);
 
+    // Apply thrust
     this.droneRigidBody.applyCentralForce(thrustWorld);
+    
+    // Define local torques based on control inputs
+    let torqueLocal = new THREE.Vector3(
+      torqueStrength * roll,   // Roll: torque around local X-axis
+      torqueStrength * yaw,    // Yaw: torque around local Y-axis
+      torqueStrength * pitch   // Pitch: torque around local Z-axis
+    );
 
-    // Apply torques around correct axes
-    // Roll: X-axis, Pitch: Z-axis, Yaw: Y-axis
-    const torqueX = new this.Ammo.btVector3(torqueStrength * roll, 0, 0); // Roll
-    const torqueY = new this.Ammo.btVector3(0, torqueStrength * yaw, 0); // Yaw
-    const torqueZ = new this.Ammo.btVector3(0, 0, torqueStrength * pitch); // Pitch
+    // Rotate the local torque vector to world space
+    torqueLocal.applyQuaternion(threeQuat);
 
-    this.droneRigidBody.applyTorque(torqueX);
-    this.droneRigidBody.applyTorque(torqueY);
-    this.droneRigidBody.applyTorque(torqueZ);
+    // Convert the rotated torque vector back to Ammo's btVector3
+    const torqueWorld = new this.Ammo.btVector3(torqueLocal.x, torqueLocal.y, torqueLocal.z);
+
+    // Apply the transformed torque to the drone
+    this.droneRigidBody.applyTorque(torqueWorld);
   }
 }
 

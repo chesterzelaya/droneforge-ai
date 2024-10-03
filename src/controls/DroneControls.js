@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 class DroneControls {
     constructor() {
       this.channels = {
@@ -6,6 +8,8 @@ class DroneControls {
         roll: 0,
         throttle: 0,
       };
+
+      this.droneQuaternion = new THREE.Quaternion();
 
       this.initControls();
     }
@@ -16,41 +20,64 @@ class DroneControls {
     }
 
     onKeyDown(event) {
-      switch (event.code) {
-        case 'ArrowLeft': this.channels.pitch = -1; break;   // Pitch up (changed from roll)
-        case 'ArrowRight': this.channels.pitch = 1; break; // Pitch down (changed from roll)
-        case 'ArrowUp': this.channels.roll = 1; break;      // Roll right (changed from pitch)
-        case 'ArrowDown': this.channels.roll = -1; break;   // Roll left (changed from pitch)
-        case 'KeyW': this.channels.throttle = 1; break;     // Throttle up
-        case 'KeyS': this.channels.throttle = -1; break;    // Throttle down
-        case 'KeyA': this.channels.yaw = 1; break;         // Yaw left
-        case 'KeyD': this.channels.yaw = -1; break;          // Yaw right
-      }
+      this.updateControlChannels(event, 1);
     }
 
     onKeyUp(event) {
+      this.updateControlChannels(event, 0);
+    }
+
+    updateControlChannels(event, value) {
       switch (event.code) {
-        case 'ArrowLeft':
-        case 'ArrowRight':
-          this.channels.pitch = 0;
+        case 'ArrowDown':
+          this.channels.roll = -value;
           break;
         case 'ArrowUp':
-        case 'ArrowDown':
-          this.channels.roll = 0;
+          this.channels.roll = value;
+          break;
+        case 'ArrowRight':
+          this.channels.pitch = value;
+          break;
+        case 'ArrowLeft':
+          this.channels.pitch = -value;
           break;
         case 'KeyW':
+          this.channels.throttle = value;
+          break;
         case 'KeyS':
-          this.channels.throttle = 0;
+          this.channels.throttle = -value;
           break;
         case 'KeyA':
+          this.channels.yaw = value;
+          break;
         case 'KeyD':
-          this.channels.yaw = 0;
+          this.channels.yaw = -value;
           break;
       }
     }
 
-    update() {
-      // This method can be used for any continuous updates if needed
+    update(droneQuaternion) {
+      if (droneQuaternion) {
+        this.droneQuaternion.copy(droneQuaternion);
+      }
+      // No continuous updates needed for now
+    }
+
+    getLocalControlForces() {
+      const force = new THREE.Vector3(this.channels.roll, this.channels.throttle, this.channels.pitch);
+      force.applyQuaternion(this.droneQuaternion);
+      return force;
+    }
+
+    getLocalControlTorques() {
+      const torque = new THREE.Vector3(this.channels.roll, this.channels.yaw, this.channels.pitch);
+      torque.applyQuaternion(this.droneQuaternion);
+      return torque;
+    }
+
+    applyControlsToDrone() {
+      // This method is now handled within PhysicsEngine.js
+      // No changes needed here
     }
 }
 

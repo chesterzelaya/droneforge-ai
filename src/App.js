@@ -14,12 +14,16 @@ class App {
       0.1,
       1000
     );
-    this.controls = new DroneControls(this.camera, this.renderer.domElement);
+    this.controls = new DroneControls(); // Removed camera dependency
     this.physicsEngine = new PhysicsEngine(this.controls);
     this.positionDisplay = null;
 
     // Camera offset relative to the drone
     this.cameraOffset = new THREE.Vector3(0, 5, -10);
+    
+    // Initialize camera position
+    this.camera.position.set(0, 5, -10);
+    this.camera.lookAt(0, 0, 0);
   }
 
   async init() {
@@ -28,9 +32,6 @@ class App {
 
     this.scene.init();
     await this.physicsEngine.init(this.scene);
-
-    // Initialize camera position relative to the drone
-    this.updateCameraPosition();
 
     // Create position display
     this.positionDisplay = createPositionDisplay();
@@ -43,7 +44,14 @@ class App {
     requestAnimationFrame(this.animate.bind(this));
 
     this.physicsEngine.update();
-    this.controls.update();
+    
+    // Update controls with the drone's current orientation
+    if (this.scene.drone && this.scene.drone.quaternion) {
+      this.controls.update(this.scene.drone.quaternion);
+    } else {
+      this.controls.update(); // Call update without parameters if drone is not available
+    }
+    
     this.renderer.render(this.scene, this.camera);
 
     // Update camera position to follow the drone
@@ -71,7 +79,7 @@ class App {
       );
 
       // Make the camera look at the drone
-      this.camera.lookAt(this.scene.drone.position);
+      this.camera.lookAt(dronePosition);
     }
   }
 

@@ -6,7 +6,7 @@ class DroneControls {
         roll: 1500,
         pitch: 1500,
         yaw: 1500,
-        throttle: 1500,
+        throttle: 0, // Initialize throttle to 0
       };
 
       this.keyStates = {};
@@ -59,7 +59,7 @@ class DroneControls {
         if (!this.keyStates['KeyA'] && !this.keyStates['KeyD']) this.channels.yaw = this.moveTowardsCenter(this.channels.yaw);
         if (!this.keyStates['ArrowUp'] && !this.keyStates['ArrowDown']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
         if (!this.keyStates['ArrowLeft'] && !this.keyStates['ArrowRight']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
-        if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsCenter(this.channels.throttle);
+        if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsZero(this.channels.throttle);
       }
     }
 
@@ -70,6 +70,10 @@ class DroneControls {
         return Math.min(center, value + rate);
       }
       return value;
+    }
+
+    moveTowardsZero(value, rate = 5) {
+      return Math.max(0, value - rate);
     }
 
     getControlInputs() {

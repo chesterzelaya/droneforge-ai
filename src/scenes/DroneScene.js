@@ -20,6 +20,9 @@ class DroneScene extends THREE.Scene {
 
     // Add environment
     this.addEnvironment();
+
+    // Add scenery
+    this.addScenery();
   }
 
   createCubeDrone() {
@@ -42,6 +45,38 @@ class DroneScene extends THREE.Scene {
     // Skybox (simple color for now)
     const skyColor = new THREE.Color(0x87CEEB);
     this.background = skyColor;
+  }
+
+  addScenery() {
+    const treeGeometry = new THREE.ConeGeometry(1, 5, 8);
+    const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+    const treeTrunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
+    const treeTrunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+
+    for (let i = -50; i <= 50; i += 10) {
+      for (let j = -50; j <= 50; j += 10) {
+        const tree = new THREE.Mesh(treeGeometry, treeMaterial);
+        tree.position.set(i, 3.5, j);
+
+        const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial);
+        trunk.position.set(0, -2, 0);
+        tree.add(trunk);
+
+        this.add(tree);
+      }
+    }
+
+    // Add some buildings
+    const buildingGeometry = new THREE.BoxGeometry(5, 10, 5);
+    const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0xa9a9a9 });
+
+    for (let i = -40; i <= 40; i += 20) {
+      for (let j = -40; j <= 40; j += 20) {
+        const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+        building.position.set(i, 5, j);
+        this.add(building);
+      }
+    }
   }
 }
 

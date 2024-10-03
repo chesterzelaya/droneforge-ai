@@ -17,25 +17,25 @@ class DroneControls {
 
     onKeyDown(event) {
       switch (event.code) {
-        case 'ArrowUp': this.channels.pitch = 1; break;
-        case 'ArrowDown': this.channels.pitch = -1; break;
-        case 'ArrowLeft': this.channels.roll = -1; break;
-        case 'ArrowRight': this.channels.roll = 1; break;
-        case 'KeyW': this.channels.throttle = 1; break;
-        case 'KeyS': this.channels.throttle = -1; break;
-        case 'KeyA': this.channels.yaw = -1; break;
-        case 'KeyD': this.channels.yaw = 1; break;
+        case 'ArrowLeft': this.channels.pitch = -1; break;   // Pitch up (changed from roll)
+        case 'ArrowRight': this.channels.pitch = 1; break; // Pitch down (changed from roll)
+        case 'ArrowUp': this.channels.roll = 1; break;      // Roll right (changed from pitch)
+        case 'ArrowDown': this.channels.roll = -1; break;   // Roll left (changed from pitch)
+        case 'KeyW': this.channels.throttle = 1; break;     // Throttle up
+        case 'KeyS': this.channels.throttle = -1; break;    // Throttle down
+        case 'KeyA': this.channels.yaw = 1; break;         // Yaw left
+        case 'KeyD': this.channels.yaw = -1; break;          // Yaw right
       }
     }
 
     onKeyUp(event) {
       switch (event.code) {
-        case 'ArrowUp':
-        case 'ArrowDown':
-          this.channels.pitch = 0;
-          break;
         case 'ArrowLeft':
         case 'ArrowRight':
+          this.channels.pitch = 0;
+          break;
+        case 'ArrowUp':
+        case 'ArrowDown':
           this.channels.roll = 0;
           break;
         case 'KeyW':

@@ -38,26 +38,26 @@ class DroneControls {
     }
 
     updateControlChannels() {
-      // Yaw Controls
+      // Yaw Controls (unchanged)
       if (this.keyStates['KeyA']) this.channels.yaw = Math.max(1000, this.channels.yaw - this.controlRate); // Rotate West
       if (this.keyStates['KeyD']) this.channels.yaw = Math.min(2000, this.channels.yaw + this.controlRate); // Rotate East
 
-      // Pitch Controls
-      if (this.keyStates['ArrowUp']) this.channels.pitch = Math.min(2000, this.channels.pitch + this.controlRate); // Tilt Forward (North)
-      if (this.keyStates['ArrowDown']) this.channels.pitch = Math.max(1000, this.channels.pitch - this.controlRate); // Tilt Backward (Away from North)
+      // Pitch Controls (switched with Roll)
+      if (this.keyStates['ArrowRight']) this.channels.pitch = Math.min(2000, this.channels.pitch + this.controlRate); // Tilt Forward (North)
+      if (this.keyStates['ArrowLeft']) this.channels.pitch = Math.max(1000, this.channels.pitch - this.controlRate); // Tilt Backward (Away from North)
 
-      // Roll Controls
-      if (this.keyStates['ArrowLeft']) this.channels.roll = Math.max(1000, this.channels.roll - this.controlRate); // Tilt Left (West)
-      if (this.keyStates['ArrowRight']) this.channels.roll = Math.min(2000, this.channels.roll + this.controlRate); // Tilt Right (East)
+      // Roll Controls (switched with Pitch)
+      if (this.keyStates['ArrowDown']) this.channels.roll = Math.max(1000, this.channels.roll - this.controlRate); // Tilt Left (West)
+      if (this.keyStates['ArrowUp']) this.channels.roll = Math.min(2000, this.channels.roll + this.controlRate); // Tilt Right (East)
 
-      // Throttle Controls
+      // Throttle Controls (unchanged)
       if (this.keyStates['KeyW']) this.channels.throttle = Math.min(2000, this.channels.throttle + this.controlRate); // Increase Throttle
       if (this.keyStates['KeyS']) this.channels.throttle = Math.max(0, this.channels.throttle - this.controlRate); // Decrease Throttle
 
       // Gradually return controls to center when keys are not pressed
       if (!this.keyStates['KeyA'] && !this.keyStates['KeyD']) this.channels.yaw = this.moveTowardsCenter(this.channels.yaw);
-      if (!this.keyStates['ArrowUp'] && !this.keyStates['ArrowDown']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
-      if (!this.keyStates['ArrowLeft'] && !this.keyStates['ArrowRight']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
+      if (!this.keyStates['ArrowRight'] && !this.keyStates['ArrowLeft']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
+      if (!this.keyStates['ArrowUp'] && !this.keyStates['ArrowDown']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
       if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsCenter(this.channels.throttle, 855);
     }
 

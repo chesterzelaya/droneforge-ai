@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 export function createPositionDisplay() {
@@ -83,4 +84,53 @@ export function createPerformanceStats() {
   stats.dom.style.top = '10px';
   stats.dom.style.left = '10px';
   return stats;
+}
+
+export function createCompass() {
+  const compass = document.createElement('div');
+  compass.style.position = 'absolute';
+  compass.style.top = '10px';
+  compass.style.left = '50%';
+  compass.style.transform = 'translateX(-50%)';
+  compass.style.width = '100px';
+  compass.style.height = '100px';
+  compass.style.borderRadius = '50%';
+  compass.style.border = '2px solid white';
+  compass.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+
+  const needle = document.createElement('div');
+  needle.style.position = 'absolute';
+  needle.style.top = '10px';
+  needle.style.left = '50%';
+  needle.style.width = '2px';
+  needle.style.height = '40px';
+  needle.style.backgroundColor = 'red';
+  needle.style.transformOrigin = 'bottom center';
+
+  compass.appendChild(needle);
+  document.body.appendChild(compass);
+
+  return compass;
+}
+
+export function updateCompass(compass, quaternion) {
+  const needle = compass.firstChild;
+  const euler = new THREE.Euler().setFromQuaternion(quaternion, 'YXZ');
+  
+  // Convert yaw from radians to degrees
+  let yawDegrees = THREE.MathUtils.radToDeg(euler.y);
+
+  // Normalize yawDegrees to [0, 360)
+  yawDegrees = (yawDegrees + 360) % 360;
+
+  // Adjust the rotation so that 0 degrees points north (-Z axis)
+  // In Three.js, positive Y rotation (yaw) turns the object clockwise when viewed from above
+  // Therefore, to align with compass directions:
+  // - 0 degrees: North (-Z)
+  // - 90 degrees: East (+X)
+  // - 180 degrees: South (+Z)
+  // - 270 degrees: West (-X)
+
+  // Rotate the needle accordingly
+  needle.style.transform = `translateX(-50%) rotate(${yawDegrees}deg)`;
 }

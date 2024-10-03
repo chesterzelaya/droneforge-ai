@@ -209,7 +209,7 @@ class PhysicsEngine {
     const droneTransform = this.droneRigidBody.getWorldTransform();
     const rotation = droneTransform.getRotation();
     
-    // Convert Ammo quaternion to Three.js quaternion
+    // Convert Ammo.js quaternion to Three.js quaternion
     const ammoQuat = rotation;
     const threeQuat = new THREE.Quaternion(ammoQuat.x(), ammoQuat.y(), ammoQuat.z(), ammoQuat.w());
     
@@ -217,7 +217,7 @@ class PhysicsEngine {
     const thrustLocal = new THREE.Vector3(0, thrustForce, 0);
     const thrustWorldVector = thrustLocal.applyQuaternion(threeQuat);
     
-    // Convert back to Ammo vector
+    // Convert back to Ammo.js vector
     const thrustWorld = new this.Ammo.btVector3(thrustWorldVector.x, thrustWorldVector.y, thrustWorldVector.z);
 
     // Apply thrust
@@ -225,23 +225,19 @@ class PhysicsEngine {
     
     // Define local torques based on control inputs
     let torqueLocal = new THREE.Vector3(
-      torqueStrength * controls.roll,
-      torqueStrength * controls.yaw,
-      torqueStrength * controls.pitch
+      torqueStrength * controls.roll,          // Roll
+      torqueStrength * -controls.yaw,         // Yaw (inverted)
+      torqueStrength * controls.pitch         // Pitch
     );
 
     // Rotate the local torque vector to world space
     torqueLocal.applyQuaternion(threeQuat);
 
-    // Convert the rotated torque vector back to Ammo's btVector3
+    // Convert the rotated torque vector back to Ammo.js btVector3
     const torqueWorld = new this.Ammo.btVector3(torqueLocal.x, torqueLocal.y, torqueLocal.z);
 
     // Apply the transformed torque to the drone
     this.droneRigidBody.applyTorque(torqueWorld);
-
-    // Apply a small downward force to simulate gravity
-    const gravity = new this.Ammo.btVector3(0, -9.81 * this.droneMass, 0);
-    this.droneRigidBody.applyCentralForce(gravity);
   }
 }
 

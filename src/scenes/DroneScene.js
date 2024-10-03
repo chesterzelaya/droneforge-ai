@@ -35,8 +35,8 @@ class DroneScene extends THREE.Scene {
     this.drone = new THREE.Mesh(geometry, material);
     this.drone.position.set(0, 5, 0);
     
-    // Rotate the drone to face north initially
-    this.drone.rotation.y = Math.PI;
+    // Ensure the drone is facing north (negative Z-axis)
+    this.drone.rotation.y = 0;
     
     this.add(this.drone);
   }

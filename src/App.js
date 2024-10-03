@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import DroneScene from './scenes/DroneScene';
 import DroneControls from './controls/DroneControls';
 import PhysicsEngine from './physics/PhysicsEngine';
-import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats } from './utils/helperFunctions';
+import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats, createCompass, updateCompass } from './utils/helperFunctions';
 
 class App {
   constructor() {
@@ -17,6 +17,7 @@ class App {
     this.controls = new DroneControls(); // Removed camera dependency
     this.physicsEngine = new PhysicsEngine(this.controls);
     this.positionDisplay = null;
+    this.compass = null;
 
     // Camera offset relative to the drone
     this.cameraOffset = new THREE.Vector3(0, 5, -10);
@@ -66,6 +67,9 @@ class App {
 
     // Create control bars display
     this.createControlBarsDisplay();
+
+    // Create compass
+    this.compass = createCompass();
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     this.animate();
@@ -180,6 +184,11 @@ class App {
 
     // Update control bars
     this.updateControlBars();
+
+    // Update compass
+    if (this.scene.drone) {
+      updateCompass(this.compass, this.scene.drone.quaternion);
+    }
 
     this.stats.end();
   }

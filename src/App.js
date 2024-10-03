@@ -25,7 +25,7 @@ class App {
     this.camera.position.set(0, 5, -10);
     this.camera.lookAt(0, 0, 0);
 
-    // Add FPV camera
+    // Modify FPV camera setup
     this.fpvCamera = new THREE.PerspectiveCamera(
       90, // Wider FOV for FPV
       1, // Aspect ratio of 1 for a square viewport
@@ -33,8 +33,8 @@ class App {
       1000
     );
     
-    // FPV render target
-    this.fpvRenderTarget = new THREE.WebGLRenderTarget(256, 256);
+    // Remove the FPV render target as it's not needed
+    // this.fpvRenderTarget = new THREE.WebGLRenderTarget(256, 256);
   }
 
   async init() {
@@ -126,33 +126,22 @@ class App {
       const dronePosition = this.scene.drone.position;
       const droneQuaternion = this.scene.drone.quaternion;
 
-      // Set FPV camera position slightly above the drone
-      this.fpvCamera.position.set(
-        dronePosition.x,
-        dronePosition.y + 0.5, // Slightly above the drone
-        dronePosition.z
-      );
+      // Set FPV camera position to match the drone's position
+      this.fpvCamera.position.copy(dronePosition);
 
-      // Create a quaternion for the initial north-facing rotation
-      const northRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0));
+      // Create a quaternion for rotating 180 degrees around the Y-axis
+      const rotationY180 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0));
 
-      // Extract Euler angles from the drone's quaternion
-      const droneEuler = new THREE.Euler().setFromQuaternion(droneQuaternion);
-
-      // Create a new quaternion with inverted roll
-      const invertedRollQuaternion = new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(
-          -droneEuler.x, // Invert the x-rotation (roll)
-          droneEuler.y,  // Keep y-rotation (yaw) the same
-          droneEuler.z   // Keep z-rotation (pitch) the same
-        )
-      );
-
-      // Combine the north rotation with the inverted roll rotation
-      const combinedRotation = new THREE.Quaternion().multiplyQuaternions(invertedRollQuaternion, northRotation);
+      // Combine the drone's rotation with the 180-degree Y-rotation
+      const combinedRotation = new THREE.Quaternion().multiplyQuaternions(droneQuaternion, rotationY180);
 
       // Set FPV camera rotation to the combined rotation
       this.fpvCamera.setRotationFromQuaternion(combinedRotation);
+
+      // Offset the camera slightly forward and up from the drone's center
+      const offset = new THREE.Vector3(0, 0.5, 0.5); // Adjusted to move camera forward
+      offset.applyQuaternion(combinedRotation);
+      this.fpvCamera.position.add(offset);
     }
   }
 

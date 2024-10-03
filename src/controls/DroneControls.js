@@ -3,13 +3,15 @@ import * as THREE from 'three';
 class DroneControls {
     constructor() {
       this.channels = {
-        yaw: 0,
-        pitch: 0,
-        roll: 0,
-        throttle: 0,
+        yaw: 1500,
+        pitch: 1500,
+        roll: 1500,
+        throttle: 855,
       };
 
       this.droneQuaternion = new THREE.Quaternion();
+      this.keyStates = {};
+      this.controlRate = 2; // Rate of change per frame
 
       this.initControls();
     }
@@ -20,64 +22,54 @@ class DroneControls {
     }
 
     onKeyDown(event) {
-      this.updateControlChannels(event, 1);
+      this.keyStates[event.code] = true;
     }
 
     onKeyUp(event) {
-      this.updateControlChannels(event, 0);
-    }
-
-    updateControlChannels(event, value) {
-      switch (event.code) {
-        case 'ArrowDown':
-          this.channels.roll = -value;
-          break;
-        case 'ArrowUp':
-          this.channels.roll = value;
-          break;
-        case 'ArrowRight':
-          this.channels.pitch = value;
-          break;
-        case 'ArrowLeft':
-          this.channels.pitch = -value;
-          break;
-        case 'KeyW':
-          this.channels.throttle = value;
-          break;
-        case 'KeyS':
-          this.channels.throttle = -value;
-          break;
-        case 'KeyA':
-          this.channels.yaw = value;
-          break;
-        case 'KeyD':
-          this.channels.yaw = -value;
-          break;
-      }
+      this.keyStates[event.code] = false;
     }
 
     update(droneQuaternion) {
       if (droneQuaternion) {
         this.droneQuaternion.copy(droneQuaternion);
       }
-      // No continuous updates needed for now
+
+      this.updateControlChannels();
     }
 
-    getLocalControlForces() {
-      const force = new THREE.Vector3(this.channels.roll, this.channels.throttle, this.channels.pitch);
-      force.applyQuaternion(this.droneQuaternion);
-      return force;
+    updateControlChannels() {
+      if (this.keyStates['ArrowDown']) this.channels.pitch = Math.max(1000, this.channels.pitch - this.controlRate);
+      if (this.keyStates['ArrowUp']) this.channels.pitch = Math.min(2000, this.channels.pitch + this.controlRate);
+      if (this.keyStates['ArrowLeft']) this.channels.roll = Math.max(1000, this.channels.roll - this.controlRate);
+      if (this.keyStates['ArrowRight']) this.channels.roll = Math.min(2000, this.channels.roll + this.controlRate);
+      if (this.keyStates['KeyW']) this.channels.throttle = Math.min(2000, this.channels.throttle + this.controlRate);
+      if (this.keyStates['KeyS']) this.channels.throttle = Math.max(0, this.channels.throttle - this.controlRate);
+      if (this.keyStates['KeyA']) this.channels.yaw = Math.max(1000, this.channels.yaw - this.controlRate);
+      if (this.keyStates['KeyD']) this.channels.yaw = Math.min(2000, this.channels.yaw + this.controlRate);
+
+      // Gradually return controls to center when keys are not pressed
+      if (!this.keyStates['ArrowDown'] && !this.keyStates['ArrowUp']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
+      if (!this.keyStates['ArrowLeft'] && !this.keyStates['ArrowRight']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
+      if (!this.keyStates['KeyA'] && !this.keyStates['KeyD']) this.channels.yaw = this.moveTowardsCenter(this.channels.yaw);
+      if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsCenter(this.channels.throttle, 855);
     }
 
-    getLocalControlTorques() {
-      const torque = new THREE.Vector3(this.channels.roll, this.channels.yaw, this.channels.pitch);
-      torque.applyQuaternion(this.droneQuaternion);
-      return torque;
+    moveTowardsCenter(value, center = 1500, rate = 1) {
+      if (value > center) {
+        return Math.max(center, value - rate);
+      } else if (value < center) {
+        return Math.min(center, value + rate);
+      }
+      return value;
     }
 
-    applyControlsToDrone() {
-      // This method is now handled within PhysicsEngine.js
-      // No changes needed here
+    getControlInputs() {
+      return {
+        roll: (this.channels.roll - 1500) / 500,  // -1 to 1
+        pitch: (this.channels.pitch - 1500) / 500,  // -1 to 1
+        yaw: (this.channels.yaw - 1500) / 500,  // -1 to 1
+        throttle: (this.channels.throttle - 855) / 1145,  // 0 to 1
+      };
     }
 }
 

@@ -4,7 +4,7 @@ class DroneScene extends THREE.Scene {
   constructor() {
     super();
     this.drone = null;
-    this.axesHelper = null;
+    // Remove the axesHelper property
   }
 
   init() {
@@ -19,8 +19,8 @@ class DroneScene extends THREE.Scene {
     // Create cube drone
     this.createCubeDrone();
 
-    // Add axes helper to the drone
-    this.addAxesHelper();
+    // Remove the call to addAxesHelper
+    // this.addAxesHelper();
 
     // Add environment
     this.addEnvironment();
@@ -41,41 +41,7 @@ class DroneScene extends THREE.Scene {
     this.add(this.drone);
   }
 
-  addAxesHelper() {
-    // Create a custom axes helper
-    this.axesHelper = new THREE.Group();
-
-    const axisLength = 2;
-    const axisWidth = 0.05;
-
-    // X-axis (red)
-    const xAxis = new THREE.Mesh(
-      new THREE.CylinderGeometry(axisWidth, axisWidth, axisLength),
-      new THREE.MeshBasicMaterial({ color: 0xff0000 })
-    );
-    xAxis.rotation.z = -Math.PI / 2;
-    xAxis.position.x = axisLength / 2;
-
-    // Y-axis (green)
-    const yAxis = new THREE.Mesh(
-      new THREE.CylinderGeometry(axisWidth, axisWidth, axisLength),
-      new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-    );
-    yAxis.position.y = axisLength / 2;
-
-    // Z-axis (blue)
-    const zAxis = new THREE.Mesh(
-      new THREE.CylinderGeometry(axisWidth, axisWidth, axisLength),
-      new THREE.MeshBasicMaterial({ color: 0x0000ff })
-    );
-    zAxis.rotation.x = Math.PI / 2;
-    zAxis.position.z = axisLength / 2;
-    zAxis.position.y = -0.5; // Move the Z-axis slightly down and back
-
-    this.axesHelper.add(xAxis, yAxis, zAxis);
-    this.axesHelper.position.set(0, 0.5, 0); // Offset slightly to be on top of the drone
-    this.drone.add(this.axesHelper);
-  }
+  // Remove the addAxesHelper method
 
   addEnvironment() {
     // Ground

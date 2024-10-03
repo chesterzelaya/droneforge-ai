@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import DroneScene from './scenes/DroneScene';
 import DroneControls from './controls/DroneControls';
 import PhysicsEngine from './physics/PhysicsEngine';
-import { createPositionDisplay, updatePositionDisplay } from './utils/helperFunctions';
+import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats } from './utils/helperFunctions';
 
 class App {
   constructor() {
@@ -35,6 +35,17 @@ class App {
     
     // Remove the FPV render target as it's not needed
     // this.fpvRenderTarget = new THREE.WebGLRenderTarget(256, 256);
+
+    // Add axes renderer
+    this.axesRenderer = null;
+    this.axesScene = null;
+    this.axesCamera = null;
+
+    // Add control bars
+    this.controlBars = {};
+
+    // Add performance stats
+    this.stats = createPerformanceStats();
   }
 
   async init() {
@@ -49,6 +60,12 @@ class App {
 
     // Create FPV display
     this.createFPVDisplay();
+
+    // Create axes display
+    this.createAxesDisplay();
+
+    // Create control bars display
+    this.createControlBarsDisplay();
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     this.animate();
@@ -73,7 +90,62 @@ class App {
     this.fpvRenderer.setSize(256, 256);
   }
 
+  createAxesDisplay() {
+    const axesDisplay = document.createElement('div');
+    axesDisplay.style.position = 'absolute';
+    axesDisplay.style.bottom = '10px';
+    axesDisplay.style.right = '10px';
+    axesDisplay.style.width = '100px';
+    axesDisplay.style.height = '100px';
+    axesDisplay.style.border = '1px solid white';
+    document.body.appendChild(axesDisplay);
+
+    const axesCanvas = document.createElement('canvas');
+    axesCanvas.width = 100;
+    axesCanvas.height = 100;
+    axesDisplay.appendChild(axesCanvas);
+
+    this.axesRenderer = new THREE.WebGLRenderer({ canvas: axesCanvas, alpha: true });
+    this.axesRenderer.setSize(100, 100);
+
+    this.axesScene = new THREE.Scene();
+    this.axesCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 10);
+    this.axesCamera.position.set(0, 0, 3);
+    this.axesCamera.lookAt(0, 0, 0);
+
+    const axesHelper = new THREE.AxesHelper(2);
+    this.axesScene.add(axesHelper);
+  }
+
+  createControlBarsDisplay() {
+    const controlDisplay = document.createElement('div');
+    controlDisplay.style.position = 'absolute';
+    controlDisplay.style.top = '10px';
+    controlDisplay.style.right = '10px';
+    controlDisplay.style.width = '200px';
+    controlDisplay.style.padding = '10px';
+    controlDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    controlDisplay.style.borderRadius = '8px';
+    controlDisplay.style.display = 'flex';
+    controlDisplay.style.flexDirection = 'column';
+    controlDisplay.style.gap = '10px';
+    document.body.appendChild(controlDisplay);
+
+    // Create bars for roll, pitch, yaw, and throttle
+    this.controlBars.roll = createControlBar('Roll', 1500, 0, 3000);
+    this.controlBars.pitch = createControlBar('Pitch', 1500, 0, 3000);
+    this.controlBars.yaw = createControlBar('Yaw', 1500, 0, 3000);
+    this.controlBars.throttle = createControlBar('Throttle', 1500, 0, 3000);
+
+    controlDisplay.appendChild(this.controlBars.roll.container);
+    controlDisplay.appendChild(this.controlBars.pitch.container);
+    controlDisplay.appendChild(this.controlBars.yaw.container);
+    controlDisplay.appendChild(this.controlBars.throttle.container);
+  }
+
   animate() {
+    this.stats.begin();
+
     requestAnimationFrame(this.animate.bind(this));
 
     this.physicsEngine.update();
@@ -82,7 +154,7 @@ class App {
     if (this.scene.drone && this.scene.drone.quaternion) {
       this.controls.update(this.scene.drone.quaternion);
     } else {
-      this.controls.update(); // Call update without parameters if drone is not available
+      this.controls.update();
     }
     
     // Update camera positions
@@ -95,10 +167,30 @@ class App {
     // Render FPV
     this.fpvRenderer.render(this.scene, this.fpvCamera);
 
+    // Render axes
+    if (this.scene.drone) {
+      this.axesScene.quaternion.copy(this.scene.drone.quaternion);
+      this.axesRenderer.render(this.axesScene, this.axesCamera);
+    }
+
     // Update position display
     if (this.scene.drone) {
       updatePositionDisplay(this.positionDisplay, this.scene.drone.position);
     }
+
+    // Update control bars
+    this.updateControlBars();
+
+    this.stats.end();
+  }
+
+  updateControlBars() {
+    const { roll, pitch, yaw, throttle } = this.controls.channels;
+
+    updateControlBar(this.controlBars.roll, roll);
+    updateControlBar(this.controlBars.pitch, pitch);
+    updateControlBar(this.controlBars.yaw, yaw);
+    updateControlBar(this.controlBars.throttle, throttle);
   }
 
   updateCameraPosition() {

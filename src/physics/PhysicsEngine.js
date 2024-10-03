@@ -199,11 +199,11 @@ class PhysicsEngine {
   }
 
   applyControlsToDrone() {
-    const { yaw, pitch, roll, throttle } = this.controls.channels;
+    const controls = this.controls.getControlInputs();
     
-    const maxThrust = 4.9; // N (half of the hover thrust for safety)
-    const thrustForce = (throttle + 1) * 0.5 * maxThrust; // Map [-1, 1] to [0, maxThrust]
-    const torqueStrength = 0.5; // Reduced torque strength for stability
+    const maxThrust = 9.81 * 2; // N (twice the hover thrust for maneuverability)
+    const thrustForce = controls.throttle * maxThrust;
+    const torqueStrength = 0.5; // Adjust as needed for responsiveness
     
     // Get drone's current orientation
     const droneTransform = this.droneRigidBody.getWorldTransform();
@@ -225,9 +225,9 @@ class PhysicsEngine {
     
     // Define local torques based on control inputs
     let torqueLocal = new THREE.Vector3(
-      torqueStrength * roll,   // Roll: torque around local X-axis
-      torqueStrength * yaw,    // Yaw: torque around local Y-axis
-      torqueStrength * pitch   // Pitch: torque around local Z-axis
+      torqueStrength * controls.roll,
+      torqueStrength * controls.yaw,
+      torqueStrength * controls.pitch
     );
 
     // Rotate the local torque vector to world space
@@ -238,6 +238,10 @@ class PhysicsEngine {
 
     // Apply the transformed torque to the drone
     this.droneRigidBody.applyTorque(torqueWorld);
+
+    // Apply a small downward force to simulate gravity
+    const gravity = new this.Ammo.btVector3(0, -9.81 * this.droneMass, 0);
+    this.droneRigidBody.applyCentralForce(gravity);
   }
 }
 

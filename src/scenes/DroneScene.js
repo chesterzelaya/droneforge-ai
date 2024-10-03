@@ -1,13 +1,15 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 class DroneScene extends THREE.Scene {
   constructor() {
     super();
     this.drone = null;
-    // Remove the axesHelper property
+    this.environment = null;
   }
 
-  init() {
+  async init() {
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     this.add(ambientLight);
@@ -19,14 +21,12 @@ class DroneScene extends THREE.Scene {
     // Create cube drone
     this.createCubeDrone();
 
-    // Remove the call to addAxesHelper
-    // this.addAxesHelper();
+    // Load new environment
+    await this.loadEnvironment();
 
-    // Add environment
-    this.addEnvironment();
-
-    // Add scenery
-    this.addScenery();
+    // Skybox (simple color for now)
+    const skyColor = new THREE.Color(0x87CEEB);
+    this.background = skyColor;
   }
 
   createCubeDrone() {
@@ -41,52 +41,39 @@ class DroneScene extends THREE.Scene {
     this.add(this.drone);
   }
 
-  // Remove the addAxesHelper method
+  loadEnvironment() {
+    return new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
 
-  addEnvironment() {
-    // Ground
-    const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
-    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x808080 });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    this.add(ground);
+      // Optional: Use DRACOLoader for compressed meshes
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('/draco/'); // Adjust this path if needed
+      loader.setDRACOLoader(dracoLoader);
 
-    // Skybox (simple color for now)
-    const skyColor = new THREE.Color(0x87CEEB);
-    this.background = skyColor;
-  }
+      loader.load(
+        '/assets/models/gltf_enviorment3/Map_v1.gltf', // Adjust this path to your GLTF file
+        (gltf) => {
+          this.environment = gltf.scene;
+          
+          // Optional: Adjust the scale of the loaded environment if needed
+          // this.environment.scale.set(10, 10, 10);
 
-  addScenery() {
-    const treeGeometry = new THREE.ConeGeometry(1, 5, 8);
-    const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
-    const treeTrunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
-    const treeTrunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+          // Optional: Adjust the position of the loaded environment if needed
+          // this.environment.position.set(0, 0, 0);
 
-    for (let i = -50; i <= 50; i += 10) {
-      for (let j = -50; j <= 50; j += 10) {
-        const tree = new THREE.Mesh(treeGeometry, treeMaterial);
-        tree.position.set(i, 3.5, j);
-
-        const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial);
-        trunk.position.set(0, -2, 0);
-        tree.add(trunk);
-
-        this.add(tree);
-      }
-    }
-
-    // Add some buildings
-    const buildingGeometry = new THREE.BoxGeometry(5, 10, 5);
-    const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0xa9a9a9 });
-
-    for (let i = -40; i <= 40; i += 20) {
-      for (let j = -40; j <= 40; j += 20) {
-        const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-        building.position.set(i, 5, j);
-        this.add(building);
-      }
-    }
+          this.add(this.environment);
+          console.log('Environment loaded successfully');
+          resolve();
+        },
+        (xhr) => {
+          console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+        },
+        (error) => {
+          console.error('An error happened', error);
+          reject(error);
+        }
+      );
+    });
   }
 }
 

@@ -3,22 +3,38 @@ class PhysicsEngine {
     this.controls = controls;
     this.rigidBodies = [];
     this.physicsWorld = null;
-    this.Ammo = window.Ammo; // Access Ammo from the global window object
+    this.Ammo = null;
     this.tmpTransformation = null;
   }
 
   async init(scene) {
     this.scene = scene;
     
-    // Ensure Ammo is loaded
+    // Wait for Ammo to be loaded
+    await this.loadAmmo();
+    
     if (!this.Ammo) {
-      console.error('Ammo.js is not loaded!');
+      console.error('Ammo.js could not be loaded!');
       return;
     }
 
     this.setupPhysicsWorld();
     this.createPhysicsObjects();
     this.tmpTransformation = new this.Ammo.btTransform();
+  }
+
+  loadAmmo() {
+    return new Promise((resolve) => {
+      if (window.Ammo) {
+        this.Ammo = window.Ammo;
+        resolve();
+      } else {
+        window.addEventListener('ammo-loaded', () => {
+          this.Ammo = window.Ammo;
+          resolve();
+        });
+      }
+    });
   }
 
   setupPhysicsWorld() {

@@ -25,7 +25,7 @@ module.exports = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: path.resolve(__dirname, 'node_modules/ammo.js/builds/ammo.wasm.wasm'), to: 'ammo.wasm.wasm' },
+        { from: path.resolve(__dirname, 'node_modules/ammo.js/ammo.js'), to: 'ammo.js' },
       ],
     }),
   ],
@@ -48,10 +48,6 @@ module.exports = {
             },
           },
         ],
-      },
-      {
-        test: /\.wasm$/,
-        type: 'webassembly/async',
       },
     ],
   },

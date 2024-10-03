@@ -54,6 +54,14 @@ class PhysicsEngine {
       collisionConfiguration
     );
     this.physicsWorld.setGravity(new this.Ammo.btVector3(0, -9.81, 0));
+
+    // Increase solver iterations for better accuracy
+    const solverInfo = this.physicsWorld.getSolverInfo();
+    if (solverInfo.m_numIterations !== undefined) {
+      solverInfo.m_numIterations = 20; // Increased from default
+    } else {
+      console.warn('Unable to set solver iterations. This may affect simulation accuracy.');
+    }
   }
 
   createPhysicsObjects() {
@@ -181,21 +189,41 @@ class PhysicsEngine {
     const velocity = this.droneRigidBody.getLinearVelocity();
     const speed = velocity.length();
     
-    const dragCoefficient = 0.47; // Sphere drag coefficient as a reference
-    const frontalArea = 0.25; // m^2 (for a cube with side 1m)
     const airDensity = 1.225; // kg/m^3 at sea level
+
+    // Drag Calculations
+    const dragCoefficient = 0.47; // Approximate for a cube
+    const frontalArea = 0.25; // m^2 (for a cube with side 1m)
     const dragMagnitude = 0.5 * dragCoefficient * frontalArea * airDensity * speed * speed;
-    
-    // Prevent division by zero
+
     if (speed > 0) {
       const dragForce = new this.Ammo.btVector3(-velocity.x(), -velocity.y(), -velocity.z());
       dragForce.normalize();
       dragForce.op_mul(dragMagnitude);
-
       this.droneRigidBody.applyCentralForce(dragForce);
     }
-    
-    // No manual gravity; Ammo.js handles it
+
+    // Lift Calculations
+    // Assuming lift is perpendicular to the velocity vector and drone's orientation
+    const liftCoefficient = .1; // Example value, should be based on drone's design
+    const liftMagnitude = 0.5 * liftCoefficient * airDensity * speed * speed;
+
+    // Calculate lift direction based on drone's orientation
+    const droneTransform = this.droneRigidBody.getWorldTransform();
+    const rotation = droneTransform.getRotation();
+    const threeQuat = new THREE.Quaternion(rotation.x(), rotation.y(), rotation.z(), rotation.w());
+    const upVector = new THREE.Vector3(0, 1, 0).applyQuaternion(threeQuat);
+    upVector.normalize();
+
+    const liftForce = new this.Ammo.btVector3(upVector.x * liftMagnitude, upVector.y * liftMagnitude, upVector.z * liftMagnitude);
+    this.droneRigidBody.applyCentralForce(liftForce);
+
+    // Additional Aerodynamic Moments (Optional)
+    // Example: Induced Drag or Torque based on rotation
+    // const torqueCoefficient = 0.1;
+    // const torqueMagnitude = torqueCoefficient * speed;
+    // const torque = new this.Ammo.btVector3(torqueMagnitude, torqueMagnitude, torqueMagnitude);
+    // this.droneRigidBody.applyTorque(torque);
   }
 
   applyControlsToDrone() {

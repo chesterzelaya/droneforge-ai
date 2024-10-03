@@ -1,17 +1,18 @@
-import * as THREE from 'three';
+import GamepadHandler from '../utils/gamepadHandler';
 
 class DroneControls {
     constructor() {
       this.channels = {
-        yaw: 1500,
-        pitch: 1500,
         roll: 1500,
-        throttle: 855,
+        pitch: 1500,
+        yaw: 1500,
+        throttle: 1500,
       };
 
-      this.droneQuaternion = new THREE.Quaternion();
       this.keyStates = {};
-      this.controlRate = 2; // Rate of change per frame
+      this.controlRate = 10; // Increased for more responsive keyboard control
+
+      this.gamepadHandler = new GamepadHandler();
 
       this.initControls();
     }
@@ -29,39 +30,40 @@ class DroneControls {
       this.keyStates[event.code] = false;
     }
 
-    update(droneQuaternion) {
-      if (droneQuaternion) {
-        this.droneQuaternion.copy(droneQuaternion);
-      }
-
+    update() {
+      this.gamepadHandler.update();
       this.updateControlChannels();
     }
 
     updateControlChannels() {
-      // Yaw Controls (unchanged)
-      if (this.keyStates['KeyA']) this.channels.yaw = Math.max(1000, this.channels.yaw - this.controlRate); // Rotate West
-      if (this.keyStates['KeyD']) this.channels.yaw = Math.min(2000, this.channels.yaw + this.controlRate); // Rotate East
+      const gamepadAxes = this.gamepadHandler.getAxes();
 
-      // Pitch Controls (switched with Roll)
-      if (this.keyStates['ArrowRight']) this.channels.pitch = Math.min(2000, this.channels.pitch + this.controlRate); // Tilt Forward (North)
-      if (this.keyStates['ArrowLeft']) this.channels.pitch = Math.max(1000, this.channels.pitch - this.controlRate); // Tilt Backward (Away from North)
+      if (this.gamepadHandler.connected) {
+        // Use gamepad input directly
+        this.channels.roll = gamepadAxes[0];
+        this.channels.pitch = gamepadAxes[1];
+        this.channels.yaw = gamepadAxes[2];
+        this.channels.throttle = gamepadAxes[3];
+      } else {
+        // Use keyboard input (existing logic)
+        if (this.keyStates['KeyA']) this.channels.yaw = Math.max(0, this.channels.yaw - this.controlRate);
+        if (this.keyStates['KeyD']) this.channels.yaw = Math.min(3000, this.channels.yaw + this.controlRate);
+        if (this.keyStates['ArrowUp']) this.channels.pitch = Math.min(3000, this.channels.pitch + this.controlRate);
+        if (this.keyStates['ArrowDown']) this.channels.pitch = Math.max(0, this.channels.pitch - this.controlRate);
+        if (this.keyStates['ArrowLeft']) this.channels.roll = Math.max(0, this.channels.roll - this.controlRate);
+        if (this.keyStates['ArrowRight']) this.channels.roll = Math.min(3000, this.channels.roll + this.controlRate);
+        if (this.keyStates['KeyW']) this.channels.throttle = Math.min(3000, this.channels.throttle + this.controlRate);
+        if (this.keyStates['KeyS']) this.channels.throttle = Math.max(0, this.channels.throttle - this.controlRate);
 
-      // Roll Controls (switched with Pitch)
-      if (this.keyStates['ArrowDown']) this.channels.roll = Math.max(1000, this.channels.roll - this.controlRate); // Tilt Left (West)
-      if (this.keyStates['ArrowUp']) this.channels.roll = Math.min(2000, this.channels.roll + this.controlRate); // Tilt Right (East)
-
-      // Throttle Controls (unchanged)
-      if (this.keyStates['KeyW']) this.channels.throttle = Math.min(2000, this.channels.throttle + this.controlRate); // Increase Throttle
-      if (this.keyStates['KeyS']) this.channels.throttle = Math.max(0, this.channels.throttle - this.controlRate); // Decrease Throttle
-
-      // Gradually return controls to center when keys are not pressed
-      if (!this.keyStates['KeyA'] && !this.keyStates['KeyD']) this.channels.yaw = this.moveTowardsCenter(this.channels.yaw);
-      if (!this.keyStates['ArrowRight'] && !this.keyStates['ArrowLeft']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
-      if (!this.keyStates['ArrowUp'] && !this.keyStates['ArrowDown']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
-      if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsCenter(this.channels.throttle, 855);
+        // Gradually return controls to center when keys are not pressed
+        if (!this.keyStates['KeyA'] && !this.keyStates['KeyD']) this.channels.yaw = this.moveTowardsCenter(this.channels.yaw);
+        if (!this.keyStates['ArrowUp'] && !this.keyStates['ArrowDown']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
+        if (!this.keyStates['ArrowLeft'] && !this.keyStates['ArrowRight']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
+        if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsCenter(this.channels.throttle);
+      }
     }
 
-    moveTowardsCenter(value, center = 1500, rate = 1) {
+    moveTowardsCenter(value, center = 1500, rate = 5) {
       if (value > center) {
         return Math.max(center, value - rate);
       } else if (value < center) {
@@ -72,10 +74,10 @@ class DroneControls {
 
     getControlInputs() {
       return {
-        roll: (this.channels.roll - 1500) / 500,      // -1 to 1
-        pitch: (this.channels.pitch - 1500) / 500,    // -1 to 1
-        yaw: (this.channels.yaw - 1500) / 500,        // -1 to 1
-        throttle: (this.channels.throttle - 855) / 1145,  // 0 to 1
+        roll: (this.channels.roll - 1500) / 1500,      // -1 to 1
+        pitch: (this.channels.pitch - 1500) / 1500,    // -1 to 1
+        yaw: (this.channels.yaw - 1500) / 1500,        // -1 to 1
+        throttle: this.channels.throttle / 3000,       // 0 to 1
       };
     }
 }

@@ -1,10 +1,8 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 class DroneScene extends THREE.Scene {
   constructor() {
     super();
-    this.loader = new GLTFLoader();
     this.drone = null;
   }
 
@@ -17,29 +15,19 @@ class DroneScene extends THREE.Scene {
     directionalLight.position.set(10, 10, 10);
     this.add(directionalLight);
 
-    // Load drone model
-    this.loadDroneModel();
+    // Create cube drone
+    this.createCubeDrone();
 
     // Add environment
     this.addEnvironment();
   }
 
-  loadDroneModel() {
-    this.loader.load(
-      'assets/models/drone.glb',
-      (gltf) => {
-        this.drone = gltf.scene;
-        this.drone.scale.set(1, 1, 1); // Increased scale by 10x (from 0.1 to 1)
-        this.drone.position.set(0, 5, 0); // Position the drone above the ground
-        this.add(this.drone);
-      },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-      },
-      (error) => {
-        console.error('An error happened while loading the drone model', error);
-      }
-    );
+  createCubeDrone() {
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+    this.drone = new THREE.Mesh(geometry, material);
+    this.drone.position.set(0, 5, 0);
+    this.add(this.drone);
   }
 
   addEnvironment() {

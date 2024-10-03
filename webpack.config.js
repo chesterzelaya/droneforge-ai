@@ -26,6 +26,7 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: path.resolve(__dirname, 'node_modules/ammo.js/ammo.js'), to: 'ammo.js' },
+        { from: 'src/assets', to: 'assets' }
       ],
     }),
   ],

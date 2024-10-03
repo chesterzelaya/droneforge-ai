@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 class PhysicsEngine {
   constructor(controls) {
     this.controls = controls;
@@ -5,12 +7,14 @@ class PhysicsEngine {
     this.physicsWorld = null;
     this.Ammo = null;
     this.tmpTransformation = null;
+    this.clockDelta = 0;
+    this.lastTime = performance.now();
+    this.droneMass = 0.25; // Updated mass to 0.25 kg (250g)
   }
 
   async init(scene) {
     this.scene = scene;
     
-    // Wait for Ammo to be loaded
     await this.loadAmmo();
     
     if (!this.Ammo) {
@@ -53,7 +57,11 @@ class PhysicsEngine {
   }
 
   createPhysicsObjects() {
-    // Create ground physics
+    this.createGround();
+    this.createDronePhysics();
+  }
+
+  createGround() {
     const groundShape = new this.Ammo.btBoxShape(new this.Ammo.btVector3(500, 0.5, 500));
     const groundTransform = new this.Ammo.btTransform();
     groundTransform.setIdentity();
@@ -62,22 +70,13 @@ class PhysicsEngine {
     const mass = 0;
     const localInertia = new this.Ammo.btVector3(0, 0, 0);
     const motionState = new this.Ammo.btDefaultMotionState(groundTransform);
-    const rbInfo = new this.Ammo.btRigidBodyConstructionInfo(
-      mass,
-      motionState,
-      groundShape,
-      localInertia
-    );
+    const rbInfo = new this.Ammo.btRigidBodyConstructionInfo(mass, motionState, groundShape, localInertia);
     const body = new this.Ammo.btRigidBody(rbInfo);
 
     this.physicsWorld.addRigidBody(body);
-
-    // Create drone physics
-    this.createDronePhysics();
   }
 
   createDronePhysics() {
-    // Ensure the drone model is loaded
     if (!this.scene.drone) {
       setTimeout(() => this.createDronePhysics(), 100);
       return;
@@ -86,78 +85,118 @@ class PhysicsEngine {
     const droneMesh = this.scene.drone;
     const position = droneMesh.position;
     const quaternion = droneMesh.quaternion;
+    
+    // Use the actual dimensions of the cube
+    const dimensions = new this.Ammo.btVector3(0.5, 0.5, 0.5);
 
-    const scale = droneMesh.scale;
-    const mass = 1; // Adjust the mass as needed
-
-    const shape = new this.Ammo.btBoxShape(
-      new this.Ammo.btVector3(scale.x * 5, scale.y * 1, scale.z * 5)
-    );
+    const shape = new this.Ammo.btBoxShape(dimensions);
     const transform = new this.Ammo.btTransform();
     transform.setIdentity();
     transform.setOrigin(new this.Ammo.btVector3(position.x, position.y, position.z));
-    transform.setRotation(
-      new this.Ammo.btQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
-    );
+    transform.setRotation(new this.Ammo.btQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w));
 
     const localInertia = new this.Ammo.btVector3(0, 0, 0);
-    shape.calculateLocalInertia(mass, localInertia);
+    shape.calculateLocalInertia(this.droneMass, localInertia);
 
     const motionState = new this.Ammo.btDefaultMotionState(transform);
-    const rbInfo = new this.Ammo.btRigidBodyConstructionInfo(
-      mass,
-      motionState,
-      shape,
-      localInertia
-    );
+    const rbInfo = new this.Ammo.btRigidBodyConstructionInfo(this.droneMass, motionState, shape, localInertia);
     this.droneRigidBody = new this.Ammo.btRigidBody(rbInfo);
-    this.droneRigidBody.setActivationState(4); // Disable deactivation
+    
+    // Increase damping for stability
+    this.droneRigidBody.setDamping(0.7, 0.7); // Increased damping
+    this.droneRigidBody.setActivationState(4);
 
     this.physicsWorld.addRigidBody(this.droneRigidBody);
     this.rigidBodies.push({ mesh: droneMesh, body: this.droneRigidBody });
   }
 
-  update(deltaTime) {
-    if (this.physicsWorld) {
-      this.physicsWorld.stepSimulation(deltaTime, 10);
+  update() {
+    const now = performance.now();
+    this.clockDelta = (now - this.lastTime) / 1000;
+    this.lastTime = now;
 
-      // Apply forces based on controls
+    if (this.physicsWorld) {
+      this.physicsWorld.stepSimulation(this.clockDelta, 10);
+
       if (this.droneRigidBody) {
+        this.applyAerodynamics();
         this.applyControlsToDrone();
       }
 
-      // Update mesh positions from physics
-      for (let i = 0; i < this.rigidBodies.length; i++) {
-        const objThree = this.rigidBodies[i].mesh;
-        const objAmmo = this.rigidBodies[i].body;
-        const ms = objAmmo.getMotionState();
-        if (ms) {
-          ms.getWorldTransform(this.tmpTransformation);
-          const p = this.tmpTransformation.getOrigin();
-          const q = this.tmpTransformation.getRotation();
-          objThree.position.set(p.x(), p.y(), p.z());
-          objThree.quaternion.set(q.x(), q.y(), q.z(), q.w());
-        }
+      this.updateMeshPositions();
+    }
+  }
+
+  updateMeshPositions() {
+    for (let i = 0; i < this.rigidBodies.length; i++) {
+      const objThree = this.rigidBodies[i].mesh;
+      const objAmmo = this.rigidBodies[i].body;
+      const ms = objAmmo.getMotionState();
+      if (ms) {
+        ms.getWorldTransform(this.tmpTransformation);
+        const p = this.tmpTransformation.getOrigin();
+        const q = this.tmpTransformation.getRotation();
+
+        // Ensure valid numerical values
+        const x = isFinite(p.x()) ? p.x() : 0;
+        const y = isFinite(p.y()) ? p.y() : 0;
+        const z = isFinite(p.z()) ? p.z() : 0;
+        const qx = isFinite(q.x()) ? q.x() : 0;
+        const qy = isFinite(q.y()) ? q.y() : 0;
+        const qz = isFinite(q.z()) ? q.z() : 0;
+        const qw = isFinite(q.w()) ? q.w() : 1;
+
+        objThree.position.set(x, y, z);
+        objThree.quaternion.set(qx, qy, qz, qw);
       }
     }
+  }
+
+  applyAerodynamics() {
+    const velocity = this.droneRigidBody.getLinearVelocity();
+    const speed = velocity.length();
+    
+    const dragCoefficient = 0.5;
+    const frontalArea = 0.1; // m^2
+    const airDensity = 1.225; // kg/m^3 at sea level
+    const dragMagnitude = 0.5 * dragCoefficient * frontalArea * airDensity * speed * speed;
+
+    // Prevent division by zero
+    if (speed > 0) {
+      const dragForce = new this.Ammo.btVector3(-velocity.x(), -velocity.y(), -velocity.z());
+      dragForce.normalize();
+      dragForce.op_mul(dragMagnitude);
+
+      this.droneRigidBody.applyCentralForce(dragForce);
+    }
+    
+    // No need to manually apply gravity as Ammo.js handles it
   }
 
   applyControlsToDrone() {
     const { yaw, pitch, roll, throttle } = this.controls.channels;
 
-    // Convert control inputs to forces and torques
-    const thrustForce = throttle * 15; // Adjust thrust coefficient as needed
-    const torqueX = pitch * 0.5; // Adjust torque coefficients as needed
-    const torqueY = yaw * 0.5;
-    const torqueZ = roll * 0.5;
+    const maxThrust = 4.9; // N (half of the hover thrust for safety)
+    const thrustForce = (throttle + 1) * 0.5 * maxThrust; // Map [-1, 1] to [0, maxThrust]
+    const torqueStrength = 0.5; // Reduced torque strength for stability
 
     // Apply upward thrust
     const thrust = new this.Ammo.btVector3(0, thrustForce, 0);
+    // No rotation applied to thrust for simplicity
     this.droneRigidBody.applyCentralForce(thrust);
 
     // Apply torques
-    const torque = new this.Ammo.btVector3(torqueX, torqueY, torqueZ);
-    this.droneRigidBody.applyTorque(torque);
+    const torqueX = new this.Ammo.btVector3(torqueStrength * pitch, 0, 0);
+    const torqueY = new this.Ammo.btVector3(0, torqueStrength * yaw, 0);
+    const torqueZ = new this.Ammo.btVector3(0, 0, torqueStrength * roll);
+
+    this.droneRigidBody.applyTorque(torqueX);
+    this.droneRigidBody.applyTorque(torqueY);
+    this.droneRigidBody.applyTorque(torqueZ);
+
+    // Optional: Apply damping force to stabilize
+    // const stabilizingForce = new this.Ammo.btVector3(0, -0.05, 0);
+    // this.droneRigidBody.applyCentralForce(stabilizingForce);
   }
 }
 

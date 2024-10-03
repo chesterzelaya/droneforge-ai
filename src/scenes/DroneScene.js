@@ -5,7 +5,7 @@ class DroneScene extends THREE.Scene {
   constructor() {
     super();
     this.loader = new GLTFLoader();
-    this.addEnvironment();
+    this.drone = null;
   }
 
   init() {
@@ -17,27 +17,27 @@ class DroneScene extends THREE.Scene {
     directionalLight.position.set(10, 10, 10);
     this.add(directionalLight);
 
-    // Comment out the drone model loading for now
-    // this.loadDroneModel();
+    // Load drone model
+    this.loadDroneModel();
 
-    // Add a simple cube to represent the drone
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    this.drone = new THREE.Mesh(geometry, material);
-    this.drone.position.set(0, 5, 0); // Position the cube above the ground
-    this.add(this.drone);
+    // Add environment
+    this.addEnvironment();
   }
 
   loadDroneModel() {
     this.loader.load(
-      '/assets/models/drone.glb',
+      'assets/models/drone.glb',
       (gltf) => {
         this.drone = gltf.scene;
+        this.drone.scale.set(1, 1, 1); // Increased scale by 10x (from 0.1 to 1)
+        this.drone.position.set(0, 5, 0); // Position the drone above the ground
         this.add(this.drone);
       },
-      undefined,
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+      },
       (error) => {
-        console.error('An error happened while loading the drone model.', error);
+        console.error('An error happened while loading the drone model', error);
       }
     );
   }
@@ -51,47 +51,9 @@ class DroneScene extends THREE.Scene {
     ground.receiveShadow = true;
     this.add(ground);
 
-    // Skybox or Sky Sphere
-    const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
-    const skyMaterial = new THREE.MeshBasicMaterial({ color: 0x87ceeb, side: THREE.BackSide });
-    const sky = new THREE.Mesh(skyGeometry, skyMaterial);
-    this.add(sky);
-
-    // Obstacles
-    this.addTrees();
-    this.addBuildings();
-  }
-
-  addTrees() {
-    const treeGeometry = new THREE.ConeGeometry(5, 20, 8);
-    const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 });
-    
-    for (let i = 0; i < 20; i++) {
-      const tree = new THREE.Mesh(treeGeometry, treeMaterial);
-      tree.position.set(
-        Math.random() * 200 - 100,
-        10,
-        Math.random() * 200 - 100
-      );
-      tree.castShadow = true;
-      this.add(tree);
-    }
-  }
-
-  addBuildings() {
-    const buildingGeometry = new THREE.BoxGeometry(20, 40, 20);
-    const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0xA9A9A9 });
-    
-    for (let i = 0; i < 10; i++) {
-      const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-      building.position.set(
-        Math.random() * 300 - 150,
-        20,
-        Math.random() * 300 - 150
-      );
-      building.castShadow = true;
-      this.add(building);
-    }
+    // Skybox (simple color for now)
+    const skyColor = new THREE.Color(0x87CEEB);
+    this.background = skyColor;
   }
 }
 

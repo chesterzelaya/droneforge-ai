@@ -91,7 +91,7 @@ class PhysicsEngine {
     const mass = 1; // Adjust the mass as needed
 
     const shape = new this.Ammo.btBoxShape(
-      new this.Ammo.btVector3(scale.x * 0.5, scale.y * 0.1, scale.z * 0.5)
+      new this.Ammo.btVector3(scale.x * 5, scale.y * 1, scale.z * 5)
     );
     const transform = new this.Ammo.btTransform();
     transform.setIdentity();

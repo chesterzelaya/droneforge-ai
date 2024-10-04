@@ -1,6 +1,8 @@
 # DroneForge AI: Open-Source Intelligent Drone Technology
 
-![DroneForge Logo](./droneforge.png)
+<p align="center">
+  <img src="./droneforge.png" alt="DroneForge Logo">
+</p>
 
 
 

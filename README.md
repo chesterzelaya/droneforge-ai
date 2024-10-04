@@ -4,37 +4,39 @@
   <img src="./droneforge.png" alt="DroneForge Logo">
 </p>
 
+<p align="center">
+  <a href="http://www.thedroneforge.com" style="font-size: 1.5em; color: #00F135; text-decoration: none;">www.thedroneforge.com</a>
+</p>
 
-
-## 🚀 Introduction
+## Introduction
 
 Welcome to **DroneForge AI**, the ultimate open-source toolkit designed to transform the world of drone intelligence and deep learning. Our goal is to make advanced drone AI accessible to everyone, empowering developers, researchers, and innovators worldwide to create autonomous aerial systems that push the boundaries of technology.
 
-## 🌟 Features
+## Features
 
 DroneForge AI offers a suite of tools and algorithms to take your drone projects to the next level:
 
-- 🧠 **Cutting-Edge Computer Vision**:
-  - **Object Classification**: Identify objects accurately in various environments.
-  - **Object Detection**: Implement real-time detection with high precision and speed.
-  - **Semantic Segmentation**: Understand and interpret complex scenes with pixel-level detail.
-  - **Instance Segmentation**: Distinguish and analyze individual objects within a single view.
+### Cutting-Edge Computer Vision
+- **Object Classification**: Identify objects accurately in various environments.
+- **Object Detection**: Implement real-time detection with high precision and speed.
+- **Semantic Segmentation**: Understand and interpret complex scenes with pixel-level detail.
+- **Instance Segmentation**: Distinguish and analyze individual objects within a single view.
 
-- 🗺️ **Advanced Navigation & Mapping**:
-  - **SLAM (Simultaneous Localization and Mapping)**: Enable drones to navigate and map their surroundings autonomously.
-  - **Depth Estimation Algorithms**: Get accurate distance measurements for smooth maneuvering.
-  - **Path Planning**: Optimize flight routes with intelligent and adaptive planning.
+### Advanced Navigation & Mapping
+- **SLAM (Simultaneous Localization and Mapping)**: Enable drones to navigate and map their surroundings autonomously.
+- **Depth Estimation Algorithms**: Get accurate distance measurements for smooth maneuvering.
+- **Path Planning**: Optimize flight routes with intelligent and adaptive planning.
 
-- 🐝 **Next-Generation Swarm Intelligence**:
-  - **Multi-Drone Coordination**: Manage complex missions with seamless multi-drone collaboration.
-  - **Swarm Behavior Simulations**: Model and deploy sophisticated swarm dynamics for scalable operations.
+### Next-Generation Swarm Intelligence
+- **Multi-Drone Coordination**: Manage complex missions with seamless multi-drone collaboration.
+- **Swarm Behavior Simulations**: Model and deploy sophisticated swarm dynamics for scalable operations.
 
-- 🛠️ **Comprehensive Development Tools**:
-  - **Real-Time 3D Simulation Environment**: Test and iterate your drone designs in a highly realistic virtual space.
-  - **Customizable Drone Physics**: Adjust the physical behaviors of drones to match specific needs and scenarios.
-  - **Extensible Plugin Architecture**: Easily integrate and expand functionalities with a modular plugin system.
+### Comprehensive Development Tools
+- **Real-Time 3D Simulation Environment**: Test and iterate your drone designs in a highly realistic virtual space.
+- **Customizable Drone Physics**: Adjust the physical behaviors of drones to match specific needs and scenarios.
+- **Extensible Plugin Architecture**: Easily integrate and expand functionalities with a modular plugin system.
 
-## 🚀 Quick Start
+## Quick Start
 
 Get started with DroneForge AI and unlock the full potential of intelligent drone development in just a few steps:
 
@@ -58,17 +60,17 @@ Get started with DroneForge AI and unlock the full potential of intelligent dron
    npm start
    ```
 
-## 🤝 Contributing
+## Contributing
 
 At DroneForge AI, we thrive on community-driven innovation. Whether you're fixing bugs, developing new features, or improving documentation, your contributions are invaluable to our mission.
 
 We're currently working on establishing contribution licenses and guidelines!
 
-## 📄 License
+## License
 
 The license is still pending!
 
-## 💡 Why Choose DroneForge AI?
+## Why Choose DroneForge AI?
 
 At DroneForge AI, we're dedicated to shaping the future of aerial robotics through accessible, intelligent, and innovative systems. Our platform is designed to:
 

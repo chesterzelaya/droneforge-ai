@@ -36,6 +36,8 @@ module.exports = {
         { from: path.resolve(__dirname, 'node_modules/ammo.js/ammo.js'), to: 'ammo.js' },
         { from: 'public/assets', to: 'assets' },
         { from: 'public/mobilenet_v3_large.tflite', to: 'mobilenet_v3_large.tflite' },
+        // Add this line to copy your test image
+        { from: 'public/assets/test_image.jpg', to: 'assets/test_image.jpg' },
       ],
     }),
   ],

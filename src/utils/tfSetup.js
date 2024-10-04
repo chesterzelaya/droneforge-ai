@@ -1,3 +1,9 @@
+/**
+ * @function setupTensorFlow
+ * @async
+ * @description Sets up TensorFlow.js, initializing the appropriate backend.
+ * @returns {Promise<boolean>} A promise that resolves to true if setup is successful, false otherwise.
+ */
 export async function setupTensorFlow() {
   return new Promise((resolve) => {
     if (typeof tf !== 'undefined') {
@@ -16,6 +22,13 @@ export async function setupTensorFlow() {
   });
 }
 
+/**
+ * @function initializeTF
+ * @private
+ * @async
+ * @description Initializes TensorFlow.js backend, preferring WebGPU if available.
+ * @returns {Promise<boolean>} A promise that resolves to true if initialization is successful, false otherwise.
+ */
 async function initializeTF() {
   try {
     await tf.ready();

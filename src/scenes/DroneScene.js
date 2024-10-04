@@ -2,13 +2,26 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
+/**
+ * @class DroneScene
+ * @extends THREE.Scene
+ * @description Manages the 3D scene for the drone simulation, including the drone model and environment.
+ */
 class DroneScene extends THREE.Scene {
+  /**
+   * @constructor
+   */
   constructor() {
     super();
     this.drone = null;
     this.environment = null;
   }
 
+  /**
+   * @method init
+   * @async
+   * @description Initializes the scene, setting up lights, creating the drone, and loading the environment.
+   */
   async init() {
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -29,6 +42,11 @@ class DroneScene extends THREE.Scene {
     this.background = skyColor;
   }
 
+  /**
+   * @method createCubeDrone
+   * @private
+   * @description Creates a simple cube representation of the drone and adds it to the scene.
+   */
   createCubeDrone() {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
@@ -41,6 +59,12 @@ class DroneScene extends THREE.Scene {
     this.add(this.drone);
   }
 
+  /**
+   * @method loadEnvironment
+   * @private
+   * @returns {Promise} A promise that resolves when the environment is loaded.
+   * @description Loads the 3D environment model and adds it to the scene.
+   */
   loadEnvironment() {
     return new Promise((resolve, reject) => {
       const loader = new GLTFLoader();

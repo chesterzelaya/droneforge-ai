@@ -5,9 +5,17 @@ import PhysicsEngine from './physics/PhysicsEngine';
 import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats, createCompass, updateCompass } from './utils/helperFunctions';
 import { loadModel, runInference } from './utils/objectDetection';
 
+/**
+ * @class App
+ * @description Main application class for the drone simulation.
+ * This class initializes and manages the 3D scene, cameras, controls, and various UI elements.
+ */
 class App {
   constructor() {
+    // Initialize Three.js renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    
+    // Create main scene and camera
     this.scene = new DroneScene();
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -15,19 +23,23 @@ class App {
       0.1,
       1000
     );
-    this.controls = new DroneControls(); // Removed camera dependency
+    
+    // Initialize drone controls and physics engine
+    this.controls = new DroneControls();
     this.physicsEngine = new PhysicsEngine(this.controls);
+    
+    // UI elements
     this.positionDisplay = null;
     this.compass = null;
 
     // Camera offset relative to the drone
     this.cameraOffset = new THREE.Vector3(0, 5, -10);
     
-    // Initialize camera position
+    // Initialize main camera position
     this.camera.position.set(0, 5, -10);
     this.camera.lookAt(0, 0, 0);
 
-    // Modify FPV camera setup
+    // Initialize FPV (First Person View) camera
     this.fpvCamera = new THREE.PerspectiveCamera(
       90, // Wider FOV for FPV
       1, // Aspect ratio of 1 for a square viewport
@@ -35,79 +47,100 @@ class App {
       1000
     );
     
-    // Remove the FPV render target as it's not needed
-    // this.fpvRenderTarget = new THREE.WebGLRenderTarget(256, 256);
-
-    // Add axes renderer
+    // Initialize axes renderer for orientation display
     this.axesRenderer = null;
     this.axesScene = null;
     this.axesCamera = null;
 
-    // Add control bars
+    // Initialize control bars for displaying drone inputs
     this.controlBars = {};
 
-    // Add performance stats
+    // Initialize performance stats
     this.stats = createPerformanceStats();
 
-    // Add object detection properties
+    // Object detection properties
     this.objectDetectionReady = false;
+    this.testImageLoaded = false;
     this.testImage = new Image();
-    this.testImage.src = '/assets/test_image.jpg'; // Make sure to add a test image to your public/assets folder
+    this.testImage.src = '/assets/test_image.jpg';
+    this.testImage.onload = () => {
+      console.log('Test image loaded successfully');
+      this.testImageLoaded = true;
+      this.tryRunTestInference();
+    };
   }
 
+  /**
+   * @method init
+   * @description Initializes the application, setting up the scene, physics, and UI elements.
+   */
   async init() {
     document.body.appendChild(this.renderer.domElement);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    this.scene.init();
+    await this.scene.init();
     await this.physicsEngine.init(this.scene);
 
-    // Create position display
+    // Create UI elements
     this.positionDisplay = createPositionDisplay();
-
-    // Create FPV display
     this.createFPVDisplay();
-
-    // Create axes display
     this.createAxesDisplay();
-
-    // Create control bars display
     this.createControlBarsDisplay();
-
-    // Create compass
     this.compass = createCompass();
 
     // Initialize object detection
     await this.initObjectDetection();
 
+    // Set up event listeners
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
+    
+    // Start the animation loop
     this.animate();
   }
 
+  /**
+   * @method initObjectDetection
+   * @description Initializes the object detection model.
+   */
   async initObjectDetection() {
     try {
       await loadModel();
       this.objectDetectionReady = true;
       console.log('Object detection initialized');
-      this.runTestInference();
+      this.tryRunTestInference();
     } catch (error) {
       console.error('Failed to initialize object detection:', error);
     }
   }
 
-  async runTestInference() {
-    if (!this.objectDetectionReady) {
-      console.error('Object detection not ready');
-      return;
+  /**
+   * @method tryRunTestInference
+   * @description Attempts to run a test inference if both the model and test image are ready.
+   */
+  tryRunTestInference() {
+    if (this.objectDetectionReady && this.testImageLoaded) {
+      this.runTestInference();
     }
-
-    this.testImage.onload = async () => {
-      const predictions = await runInference(this.testImage);
-      console.log('Test inference results:', predictions);
-      // You can display these results in your UI if desired
-    };
   }
 
+  /**
+   * @method runTestInference
+   * @description Runs a test inference on the loaded test image.
+   */
+  async runTestInference() {
+    try {
+      console.log('Running test inference...');
+      const predictions = await runInference(this.testImage);
+      console.log('Test inference results:', predictions);
+    } catch (error) {
+      console.error('Error running inference:', error);
+    }
+  }
+
+  /**
+   * @method createFPVDisplay
+   * @description Creates the First Person View display.
+   */
   createFPVDisplay() {
     const fpvDisplay = document.createElement('div');
     fpvDisplay.style.position = 'absolute';
@@ -127,6 +160,10 @@ class App {
     this.fpvRenderer.setSize(256, 256);
   }
 
+  /**
+   * @method createAxesDisplay
+   * @description Creates the axes display for showing drone orientation.
+   */
   createAxesDisplay() {
     const axesDisplay = document.createElement('div');
     axesDisplay.style.position = 'absolute';
@@ -154,6 +191,10 @@ class App {
     this.axesScene.add(axesHelper);
   }
 
+  /**
+   * @method createControlBarsDisplay
+   * @description Creates control bars to display drone input values.
+   */
   createControlBarsDisplay() {
     const controlDisplay = document.createElement('div');
     controlDisplay.style.position = 'absolute';
@@ -180,6 +221,10 @@ class App {
     controlDisplay.appendChild(this.controlBars.throttle.container);
   }
 
+  /**
+   * @method animate
+   * @description Main animation loop that updates the scene and renders each frame.
+   */
   animate() {
     this.stats.begin();
 
@@ -198,34 +243,28 @@ class App {
     this.updateCameraPosition();
     this.updateFPVCameraPosition();
 
-    // Render main view
+    // Render main view, FPV, and axes
     this.renderer.render(this.scene, this.camera);
-
-    // Render FPV
     this.fpvRenderer.render(this.scene, this.fpvCamera);
-
-    // Render axes
     if (this.scene.drone) {
       this.axesScene.quaternion.copy(this.scene.drone.quaternion);
       this.axesRenderer.render(this.axesScene, this.axesCamera);
     }
 
-    // Update position display
+    // Update UI elements
     if (this.scene.drone) {
       updatePositionDisplay(this.positionDisplay, this.scene.drone.position);
-    }
-
-    // Update control bars
-    this.updateControlBars();
-
-    // Update compass
-    if (this.scene.drone) {
       updateCompass(this.compass, this.scene.drone.quaternion);
     }
+    this.updateControlBars();
 
     this.stats.end();
   }
 
+  /**
+   * @method updateControlBars
+   * @description Updates the control bar displays with current input values.
+   */
   updateControlBars() {
     const { roll, pitch, yaw, throttle } = this.controls.channels;
 
@@ -235,6 +274,10 @@ class App {
     updateControlBar(this.controlBars.throttle, throttle);
   }
 
+  /**
+   * @method updateCameraPosition
+   * @description Updates the main camera position relative to the drone.
+   */
   updateCameraPosition() {
     if (this.scene.drone) {
       const dronePosition = this.scene.drone.position;
@@ -255,6 +298,10 @@ class App {
     }
   }
 
+  /**
+   * @method updateFPVCameraPosition
+   * @description Updates the FPV camera position and orientation to match the drone.
+   */
   updateFPVCameraPosition() {
     if (this.scene.drone) {
       const dronePosition = this.scene.drone.position;
@@ -273,12 +320,16 @@ class App {
       this.fpvCamera.setRotationFromQuaternion(combinedRotation);
 
       // Offset the camera slightly forward and up from the drone's center
-      const offset = new THREE.Vector3(0, 0.5, 0.5); // Adjusted to move camera forward
+      const offset = new THREE.Vector3(0, 0.5, 0.5);
       offset.applyQuaternion(combinedRotation);
       this.fpvCamera.position.add(offset);
     }
   }
 
+  /**
+   * @method onWindowResize
+   * @description Handles window resize events, updating the camera and renderer accordingly.
+   */
   onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();

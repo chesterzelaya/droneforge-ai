@@ -1,6 +1,15 @@
 import * as THREE from 'three';
 
+/**
+ * @class PhysicsEngine
+ * @description Manages the physics simulation for the drone and its environment.
+ * This class handles the integration of Ammo.js physics with Three.js rendering.
+ */
 class PhysicsEngine {
+  /**
+   * @constructor
+   * @param {DroneControls} controls - The drone controls instance.
+   */
   constructor(controls) {
     this.controls = controls;
     this.rigidBodies = [];
@@ -12,6 +21,12 @@ class PhysicsEngine {
     this.droneMass = 0.25; // 250g
   }
 
+  /**
+   * @method init
+   * @async
+   * @param {THREE.Scene} scene - The Three.js scene to which physics objects will be added.
+   * @description Initializes the physics engine, loading Ammo.js and setting up the physics world.
+   */
   async init(scene) {
     this.scene = scene;
     
@@ -27,6 +42,12 @@ class PhysicsEngine {
     this.tmpTransformation = new this.Ammo.btTransform();
   }
 
+  /**
+   * @method loadAmmo
+   * @private
+   * @returns {Promise} A promise that resolves when Ammo.js is loaded.
+   * @description Loads the Ammo.js library.
+   */
   loadAmmo() {
     return new Promise((resolve) => {
       if (window.Ammo) {
@@ -41,6 +62,11 @@ class PhysicsEngine {
     });
   }
 
+  /**
+   * @method setupPhysicsWorld
+   * @private
+   * @description Sets up the Ammo.js physics world with default settings.
+   */
   setupPhysicsWorld() {
     const collisionConfiguration = new this.Ammo.btDefaultCollisionConfiguration();
     const dispatcher = new this.Ammo.btCollisionDispatcher(collisionConfiguration);
@@ -64,11 +90,21 @@ class PhysicsEngine {
     }
   }
 
+  /**
+   * @method createPhysicsObjects
+   * @private
+   * @description Creates the initial physics objects in the world (ground and drone).
+   */
   createPhysicsObjects() {
     this.createGround();
     this.createDronePhysics();
   }
 
+  /**
+   * @method createGround
+   * @private
+   * @description Creates a static ground plane in the physics world.
+   */
   createGround() {
     const groundShape = new this.Ammo.btBoxShape(new this.Ammo.btVector3(500, 0.5, 500));
     const groundTransform = new this.Ammo.btTransform();
@@ -84,6 +120,11 @@ class PhysicsEngine {
     this.physicsWorld.addRigidBody(body);
   }
 
+  /**
+   * @method createDronePhysics
+   * @private
+   * @description Creates the physics representation of the drone.
+   */
   createDronePhysics() {
     if (!this.scene.drone) {
       setTimeout(() => this.createDronePhysics(), 100);
@@ -117,6 +158,11 @@ class PhysicsEngine {
     this.rigidBodies.push({ mesh: droneMesh, body: this.droneRigidBody });
   }
 
+  /**
+   * @method update
+   * @public
+   * @description Updates the physics simulation. Should be called once per frame.
+   */
   update() {
     const now = performance.now();
     this.clockDelta = (now - this.lastTime) / 1000; // Convert to seconds
@@ -134,6 +180,11 @@ class PhysicsEngine {
     }
   }
 
+  /**
+   * @method updateMeshPositions
+   * @private
+   * @description Updates the positions of Three.js meshes based on their physics representations.
+   */
   updateMeshPositions() {
     for (let i = 0; i < this.rigidBodies.length; i++) {
       const objThree = this.rigidBodies[i].mesh;
@@ -185,6 +236,11 @@ class PhysicsEngine {
     }
   }
 
+  /**
+   * @method applyAerodynamics
+   * @private
+   * @description Applies aerodynamic forces to the drone based on its current state.
+   */
   applyAerodynamics() {
     const velocity = this.droneRigidBody.getLinearVelocity();
     const speed = velocity.length();
@@ -226,6 +282,11 @@ class PhysicsEngine {
     // this.droneRigidBody.applyTorque(torque);
   }
 
+  /**
+   * @method applyControlsToDrone
+   * @private
+   * @description Applies control inputs to the drone's physics representation.
+   */
   applyControlsToDrone() {
     const controls = this.controls.getControlInputs();
     

@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
+/**
+ * @function createPositionDisplay
+ * @description Creates a DOM element to display the drone's position.
+ * @returns {HTMLElement} The created position display element.
+ */
 export function createPositionDisplay() {
   const positionDisplay = document.createElement('div');
   positionDisplay.style.position = 'absolute';
@@ -16,6 +21,12 @@ export function createPositionDisplay() {
   return positionDisplay;
 }
 
+/**
+ * @function updatePositionDisplay
+ * @description Updates the position display with the current drone position.
+ * @param {HTMLElement} display - The position display element.
+ * @param {THREE.Vector3} position - The current position of the drone.
+ */
 export function updatePositionDisplay(display, position) {
   display.textContent = `Position: 
     X: ${position.x.toFixed(2)}
@@ -23,6 +34,15 @@ export function updatePositionDisplay(display, position) {
     Z: ${position.z.toFixed(2)}`;
 }
 
+/**
+ * @function createControlBar
+ * @description Creates a control bar for displaying drone input values.
+ * @param {string} label - The label for the control bar.
+ * @param {number} initialValue - The initial value of the control.
+ * @param {number} min - The minimum value of the control.
+ * @param {number} max - The maximum value of the control.
+ * @returns {Object} An object containing the control bar elements.
+ */
 export function createControlBar(label, initialValue, min, max) {
   const container = document.createElement('div');
   container.style.display = 'flex';
@@ -53,6 +73,12 @@ export function createControlBar(label, initialValue, min, max) {
   return { container, fill, labelElem, min, max };
 }
 
+/**
+ * @function updateControlBar
+ * @description Updates a control bar with a new value.
+ * @param {Object} controlBar - The control bar object.
+ * @param {number} value - The new value for the control bar.
+ */
 export function updateControlBar(controlBar, value) {
   const { fill, labelElem, min, max } = controlBar;
   const clampedValue = Math.min(Math.max(value, min), max);
@@ -61,21 +87,28 @@ export function updateControlBar(controlBar, value) {
   labelElem.textContent = `${labelElem.textContent.split(':')[0]}: ${clampedValue}`;
 }
 
+/**
+ * @function getBarColor
+ * @private
+ * @description Returns a color for a control bar based on its label.
+ * @param {string} label - The label of the control bar.
+ * @returns {string} The color for the control bar.
+ */
 function getBarColor(label) {
   switch (label) {
-    case 'Roll':
-      return '#ff0000'; // Red
-    case 'Pitch':
-      return '#00ff00'; // Green
-    case 'Yaw':
-      return '#0000ff'; // Blue
-    case 'Throttle':
-      return '#ffff00'; // Yellow
-    default:
-      return '#ffffff'; // White
+    case 'Roll': return '#ff0000'; // Red
+    case 'Pitch': return '#00ff00'; // Green
+    case 'Yaw': return '#0000ff'; // Blue
+    case 'Throttle': return '#ffff00'; // Yellow
+    default: return '#ffffff'; // White
   }
 }
 
+/**
+ * @function createPerformanceStats
+ * @description Creates a performance stats display using Stats.js.
+ * @returns {Stats} The created Stats object.
+ */
 export function createPerformanceStats() {
   const stats = new Stats();
   stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -86,6 +119,11 @@ export function createPerformanceStats() {
   return stats;
 }
 
+/**
+ * @function createCompass
+ * @description Creates a compass display for showing drone orientation.
+ * @returns {HTMLElement} The created compass element.
+ */
 export function createCompass() {
   const compass = document.createElement('div');
   compass.style.position = 'absolute';
@@ -113,24 +151,18 @@ export function createCompass() {
   return compass;
 }
 
+/**
+ * @function updateCompass
+ * @description Updates the compass display based on the drone's orientation.
+ * @param {HTMLElement} compass - The compass element.
+ * @param {THREE.Quaternion} quaternion - The drone's current orientation.
+ */
 export function updateCompass(compass, quaternion) {
   const needle = compass.firstChild;
   const euler = new THREE.Euler().setFromQuaternion(quaternion, 'YXZ');
   
-  // Convert yaw from radians to degrees
   let yawDegrees = THREE.MathUtils.radToDeg(euler.y);
-
-  // Normalize yawDegrees to [0, 360)
   yawDegrees = (yawDegrees + 360) % 360;
 
-  // Adjust the rotation so that 0 degrees points north (-Z axis)
-  // In Three.js, positive Y rotation (yaw) turns the object clockwise when viewed from above
-  // Therefore, to align with compass directions:
-  // - 0 degrees: North (-Z)
-  // - 90 degrees: East (+X)
-  // - 180 degrees: South (+Z)
-  // - 270 degrees: West (-X)
-
-  // Rotate the needle accordingly
   needle.style.transform = `translateX(-50%) rotate(${yawDegrees}deg)`;
 }

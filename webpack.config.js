@@ -17,11 +17,12 @@ module.exports = {
     historyApiFallback: true,
     headers: {
       "Content-Security-Policy": "default-src 'self'; " +
-                                 "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+                                 "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; " +
                                  "style-src 'self' 'unsafe-inline'; " +
                                  "img-src 'self' blob: data:; " +
-                                 "connect-src 'self' blob: data: ws: wss:; " +
-                                 "worker-src 'self' blob:;"
+                                 "connect-src 'self' blob: data: https://cdn.jsdelivr.net; " +
+                                 "worker-src 'self' blob:; " +
+                                 "wasm-src 'self' blob:;"
     },
   },
   plugins: [
@@ -33,7 +34,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: path.resolve(__dirname, 'node_modules/ammo.js/ammo.js'), to: 'ammo.js' },
-        { from: 'public/assets', to: 'assets' }
+        { from: 'public/assets', to: 'assets' },
+        { from: 'public/mobilenet_v3_large.tflite', to: 'mobilenet_v3_large.tflite' },
       ],
     }),
   ],

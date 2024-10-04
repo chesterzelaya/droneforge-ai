@@ -3,6 +3,7 @@ import DroneScene from './scenes/DroneScene';
 import DroneControls from './controls/DroneControls';
 import PhysicsEngine from './physics/PhysicsEngine';
 import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats, createCompass, updateCompass } from './utils/helperFunctions';
+import { loadModel, runInference } from './utils/objectDetection';
 
 class App {
   constructor() {
@@ -47,6 +48,11 @@ class App {
 
     // Add performance stats
     this.stats = createPerformanceStats();
+
+    // Add object detection properties
+    this.objectDetectionReady = false;
+    this.testImage = new Image();
+    this.testImage.src = '/assets/test_image.jpg'; // Make sure to add a test image to your public/assets folder
   }
 
   async init() {
@@ -71,8 +77,35 @@ class App {
     // Create compass
     this.compass = createCompass();
 
+    // Initialize object detection
+    await this.initObjectDetection();
+
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     this.animate();
+  }
+
+  async initObjectDetection() {
+    try {
+      await loadModel();
+      this.objectDetectionReady = true;
+      console.log('Object detection initialized');
+      this.runTestInference();
+    } catch (error) {
+      console.error('Failed to initialize object detection:', error);
+    }
+  }
+
+  async runTestInference() {
+    if (!this.objectDetectionReady) {
+      console.error('Object detection not ready');
+      return;
+    }
+
+    this.testImage.onload = async () => {
+      const predictions = await runInference(this.testImage);
+      console.log('Test inference results:', predictions);
+      // You can display these results in your UI if desired
+    };
   }
 
   createFPVDisplay() {

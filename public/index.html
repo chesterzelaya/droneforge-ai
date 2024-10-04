@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' blob: data:;">
   <title>Drone Simulation</title>
   <style>
     body { margin: 0; }
     canvas { display: block; }
+    #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }
   </style>
+  <!-- Load TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>
 </head>
 <body>
   <div id="app"></div>
+  <div id="loading">Loading TensorFlow.js...</div>
   <!-- Load Ammo.js as a global script -->
   <script src="ammo.js"></script>
 </body>

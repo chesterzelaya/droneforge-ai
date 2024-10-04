@@ -16,17 +16,24 @@ module.exports = {
     hot: true, // Enables hot module replacement
     historyApiFallback: true,
     headers: {
-      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' ws:;"
+      "Content-Security-Policy": "default-src 'self'; " +
+                                 "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+                                 "style-src 'self' 'unsafe-inline'; " +
+                                 "img-src 'self' blob: data:; " +
+                                 "connect-src 'self' blob: data: ws: wss:; " +
+                                 "worker-src 'self' blob:;"
     },
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './public/index.html',
+      inject: 'body',
+      // Remove the scripts array from here
     }),
     new CopyWebpackPlugin({
       patterns: [
         { from: path.resolve(__dirname, 'node_modules/ammo.js/ammo.js'), to: 'ammo.js' },
-        { from: 'public/assets', to: 'assets' }  // Changed from 'src/assets' to 'public/assets'
+        { from: 'public/assets', to: 'assets' }
       ],
     }),
   ],

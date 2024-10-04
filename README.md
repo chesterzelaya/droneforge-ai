@@ -1,6 +1,4 @@
-# DroneForge AI: Leading the Way in Smart Drone Technology
-
-![DroneForge AI Logo]
+# DroneForge AI: Open-Source Intelligent Drone Technology
 
 ## 🚀 Introduction
 

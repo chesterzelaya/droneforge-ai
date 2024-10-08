@@ -126,7 +126,7 @@ export async function runInference(imageElement) {
       const bbox = boxesData[0][i]; // An array of 4 numbers
       console.log('BBox:', bbox);
 
-      if (score > 0.02) {  // Confidence threshold
+      if (score > 0.8) {  // Confidence threshold
         detections.push({
           bbox: [
             bbox[1] * imageElement.width,  // xmin

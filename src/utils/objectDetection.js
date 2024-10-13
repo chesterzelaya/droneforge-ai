@@ -1,3 +1,8 @@
+// TODO: convert the below to something compatible with web onnx pre and post processing
+
+
+
+
 let tfliteModel;
 let labels = [];
 
@@ -28,6 +33,33 @@ export async function loadModel() {
     console.log('Model output shapes:', tfliteModel.outputs.map(output => output.shape));
   } catch (error) {
     console.error('Error loading model:', error);
+    throw error;
+  }
+}
+
+export async function loadModelONNX() {
+  console.log('Starting to load {ONNX} model using ONNX Runtime Web...');
+  try {
+    // Load the ONNX model
+    console.log('Loading ONNX model from file...');
+    const modelPath = '/neuflow_things.onnx'; 
+    const session = await ort.InferenceSession.create(modelPath);
+    console.log('Neuflow ONNX model loaded successfully');
+    
+    // Log model input and output shapes
+    const inputNames = session.inputNames;
+    const outputNames = session.outputNames;
+    const inputShape = session.inputNames.map(name => session.input(name).dims);
+    const outputShapes = session.outputNames.map(name => session.output(name).dims);
+    
+    console.log('Model input names:', inputNames);
+    console.log('Model input shapes:', inputShape);
+    console.log('Model output names:', outputNames);
+    console.log('Model output shapes:', outputShapes);
+
+    // You can now use the session to make inferences with the ONNX model
+  } catch (error) {
+    console.error('Error loading ONNX model:', error);
     throw error;
   }
 }

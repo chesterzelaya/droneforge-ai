@@ -1,16 +1,20 @@
 import App from './App';
 import { setupTensorFlow } from './utils/tfSetup';
+import * as ort from 'onnxruntime-web/webgpu';
+
+let sessionPromise = ort.InferenceSession.create('./neuflow_things.onnx').then(sess => {
+  console.log('OnnxRuntime Web session created');
+  return sess;
+});
+
 
 async function initializeApp() {
   const loadingElement = document.getElementById('loading');
-  
-  const tfInitialized = await setupTensorFlow();
-  if (!tfInitialized) {
-    console.error('Failed to initialize TensorFlow.js. Some features may not work.');
-    loadingElement.textContent = 'TensorFlow.js initialization failed. Some features may not work.';
-  } else {
-    console.log('TensorFlow.js initialized successfully');
-  }
+
+  // start inference session with OnnxRuntime Web
+  const session = await sessionPromise;
+  console.log('OnnxRuntime Web session created');
+
 
   const app = new App();
   await app.init();
@@ -24,3 +28,5 @@ if (document.readyState === 'loading') {
 } else {
   initializeApp();
 }
+
+export { sessionPromise };

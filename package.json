@@ -13,6 +13,9 @@
   "description": "",
   "dependencies": {
     "ammo.js": "^0.0.10",
+    "jimp": "^1.6.0",
+    "lodash": "^4.17.21",
+    "onnxruntime-web": "^1.19.2",
     "path-browserify": "^1.0.1",
     "stats.js": "^0.17.0",
     "three": "^0.169.0",

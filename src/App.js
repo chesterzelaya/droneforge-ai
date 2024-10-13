@@ -4,6 +4,8 @@ import DroneControls from './controls/DroneControls';
 import PhysicsEngine from './physics/PhysicsEngine';
 import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats, createCompass, updateCompass } from './utils/helperFunctions';
 import { loadModel, runInference } from './utils/objectDetection';
+import { getImageTensorFromPath } from './utils/imageHelper';
+import { runSessionModel } from './utils/modelHelper';
 
 /**
  * @class App
@@ -66,7 +68,7 @@ class App {
     this.testImage.onload = () => {
       console.log('Test image loaded successfully');
       this.testImageLoaded = true;
-      this.tryRunTestInference();
+      //this.tryRunTestInference();
     };
   }
 
@@ -104,10 +106,33 @@ class App {
    */
   async initObjectDetection() {
     try {
-      await loadModel();
-      this.objectDetectionReady = true;
-      console.log('Object detection initialized');
-      this.tryRunTestInference();
+      // first we start with image conversion to Tensor
+      const imageTensor = await getImageTensorFromPath(this.testImage.src, [1, 3, 432, 768]);
+
+      // run model
+      //const [predictions, inferenceTime] = 
+      const outputData = await runSessionModel(imageTensor);
+
+      // Convert output data to a string
+      const outputString = JSON.stringify(outputData['cpuData']);
+
+      // Create a Blob from the output string
+      const blob = new Blob([outputString], { type: 'text/plain' });
+
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+
+      // clear the current content of utils/output.txt
+      link.download = 'output.txt';
+      
+      // Append the link to the document body and click it to trigger the download
+      document.body.appendChild(link);
+      link.click();
+
+      // Remove the link from the document
+      document.body.removeChild(link);
+      
     } catch (error) {
       console.error('Failed to initialize object detection:', error);
     }

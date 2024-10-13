@@ -49,7 +49,7 @@ We welcome contributions! Whether you're fixing bugs, adding features, or improv
 
 ## License
 
-Pending.
+ GNU GENERAL PUBLIC LICENSE.
 
 ## Why Choose DroneForge AI?
 

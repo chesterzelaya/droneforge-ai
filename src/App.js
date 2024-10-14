@@ -3,9 +3,9 @@ import DroneScene from './scenes/DroneScene';
 import DroneControls from './controls/DroneControls';
 import PhysicsEngine from './physics/PhysicsEngine';
 import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats, createCompass, updateCompass } from './utils/helperFunctions';
-import { loadModel } from './utils/objectDetection';
+import { loadModel } from './inference/objectDetection';
 import { getImageTensorFromPath } from './utils/imageHelper';
-import { runSessionModel } from './utils/modelHelper';
+import { runSessionModel } from './inference/modelHelper';
 
 /**
  * @class App

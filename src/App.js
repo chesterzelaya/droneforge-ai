@@ -6,6 +6,7 @@ import { createPositionDisplay, updatePositionDisplay, createControlBar, updateC
 import { loadModel } from './inference/objectDetection';
 import { getImageTensorFromPath } from './utils/imageHelper';
 import { runSessionModel } from './inference/modelHelper';
+import { createFPVDisplay, captureFPVSnapshot, downloadImage, displayImage, startFrameCapture } from './utils/fpvUtils';
 
 /**
  * @class App
@@ -85,7 +86,7 @@ class App {
 
     // Create UI elements
     this.positionDisplay = createPositionDisplay();
-    this.createFPVDisplay();
+    this.fpvRenderer = createFPVDisplay();
     this.createAxesDisplay();
     this.createControlBarsDisplay();
     this.compass = createCompass();
@@ -98,6 +99,19 @@ class App {
     
     // Start the animation loop
     this.animate();
+
+    // Capture a snapshot from the FPV display
+    const snapshotDataURL = captureFPVSnapshot(this.fpvRenderer);
+    if (snapshotDataURL) {
+      console.log('Snapshot captured successfully:', snapshotDataURL);
+      // Download the image
+      //downloadImage(snapshotDataURL, 'fpv_snapshot.png');
+      // Optionally display the image
+      displayImage(snapshotDataURL);
+    }
+
+    // Start capturing frames every 2 seconds
+    startFrameCapture(this.fpvRenderer, this.scene, this.fpvCamera, 2000);
   }
 
   /**
@@ -160,29 +174,6 @@ class App {
     } catch (error) {
       console.error('Error running inference:', error);
     }
-  }
-
-  /**
-   * @method createFPVDisplay
-   * @description Creates the First Person View display.
-   */
-  createFPVDisplay() {
-    const fpvDisplay = document.createElement('div');
-    fpvDisplay.style.position = 'absolute';
-    fpvDisplay.style.top = '10px';
-    fpvDisplay.style.left = '10px';
-    fpvDisplay.style.width = '256px';
-    fpvDisplay.style.height = '256px';
-    fpvDisplay.style.border = '2px solid white';
-    document.body.appendChild(fpvDisplay);
-
-    const fpvCanvas = document.createElement('canvas');
-    fpvCanvas.width = 256;
-    fpvCanvas.height = 256;
-    fpvDisplay.appendChild(fpvCanvas);
-
-    this.fpvRenderer = new THREE.WebGLRenderer({ canvas: fpvCanvas });
-    this.fpvRenderer.setSize(256, 256);
   }
 
   /**

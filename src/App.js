@@ -3,7 +3,7 @@ import DroneScene from './scenes/DroneScene';
 import DroneControls from './controls/DroneControls';
 import PhysicsEngine from './physics/PhysicsEngine';
 import { createPositionDisplay, updatePositionDisplay, createControlBar, updateControlBar, createPerformanceStats, createCompass, updateCompass } from './utils/helperFunctions';
-import { loadModel, runInference } from './utils/objectDetection';
+import { loadModel } from './utils/objectDetection';
 import { getImageTensorFromPath } from './utils/imageHelper';
 import { runSessionModel } from './utils/modelHelper';
 
@@ -113,25 +113,25 @@ class App {
       //const [predictions, inferenceTime] = 
       const outputData = await runSessionModel(imageTensor);
 
-      // Convert output data to a string
-      const outputString = JSON.stringify(outputData['cpuData']);
+      // // Convert output data to a string
+      // const outputString = JSON.stringify(outputData['cpuData']);
 
-      // Create a Blob from the output string
-      const blob = new Blob([outputString], { type: 'text/plain' });
+      // // Create a Blob from the output string
+      // const blob = new Blob([outputString], { type: 'text/plain' });
 
-      // Create a link element
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
+      // // Create a link element
+      // const link = document.createElement('a');
+      // link.href = URL.createObjectURL(blob);
 
-      // clear the current content of utils/output.txt
-      link.download = 'output.txt';
+      // // clear the current content of utils/output.txt
+      // link.download = 'output.txt';
       
-      // Append the link to the document body and click it to trigger the download
-      document.body.appendChild(link);
-      link.click();
+      // // Append the link to the document body and click it to trigger the download
+      // document.body.appendChild(link);
+      // link.click();
 
-      // Remove the link from the document
-      document.body.removeChild(link);
+      // // Remove the link from the document
+      // document.body.removeChild(link);
       
     } catch (error) {
       console.error('Failed to initialize object detection:', error);

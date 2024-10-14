@@ -100,16 +100,6 @@ class App {
     // Start the animation loop
     this.animate();
 
-    // Capture a snapshot from the FPV display
-    const snapshotDataURL = captureFPVSnapshot(this.fpvRenderer);
-    if (snapshotDataURL) {
-      console.log('Snapshot captured successfully:', snapshotDataURL);
-      // Download the image
-      //downloadImage(snapshotDataURL, 'fpv_snapshot.png');
-      // Optionally display the image
-      displayImage(snapshotDataURL);
-    }
-
     // Start capturing frames every 2 seconds
     startFrameCapture(this.fpvRenderer, this.scene, this.fpvCamera, 2000);
   }

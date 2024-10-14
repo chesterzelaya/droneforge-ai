@@ -36,7 +36,7 @@ export function captureFPVSnapshot(fpvRenderer) {
   if (fpvRenderer && fpvRenderer.domElement) {
     const fpvCanvas = fpvRenderer.domElement;
     const snapshotDataURL = fpvCanvas.toDataURL('image/png');
-    console.log('FPV Snapshot captured:', snapshotDataURL);
+    //console.log('FPV Snapshot captured:', snapshotDataURL);
     return snapshotDataURL;
   } else {
     console.error('FPV Renderer or canvas not initialized.');

@@ -46,8 +46,8 @@ class App {
     this.fpvCamera = new THREE.PerspectiveCamera(
       90, // Wider FOV for FPV
       1, // Aspect ratio of 1 for a square viewport
-      0.1,
-      1000
+      0.1, // Near clipping plane
+      1000 // Far clipping plane
     );
     
     // Initialize axes renderer for orientation display
@@ -78,7 +78,11 @@ class App {
    * @description Initializes the application, setting up the scene, physics, and UI elements.
    */
   async init() {
+    // Append the renderer's DOM element to the document body
     document.body.appendChild(this.renderer.domElement);
+
+    // Set the renderer size to match the window dimensions
+    // This ensures the canvas fills the entire browser window
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     await this.scene.init();
@@ -92,16 +96,16 @@ class App {
     this.compass = createCompass();
 
     // Initialize object detection
-    await this.initObjectDetection();
+    // await this.initObjectDetection();
 
     // Set up event listeners
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     
     // Start the animation loop
     this.animate();
-
-    // Start capturing frames every 2 seconds
-    startFrameCapture(this.fpvRenderer, this.scene, this.fpvCamera, 2000);
+    startFrameCapture(this.fpvRenderer, this.scene, this.fpvCamera, 20000);
+    // Start capturing frames every 10 seconds
+    // this.startLivestreamInference();
   }
 
   /**

@@ -1,5 +1,7 @@
 import { Jimp } from 'jimp';
 import { Tensor } from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/webgpu';
+
 
 /**
  * Loads an image from a given path and converts it to a tensor suitable for input into a neural network.
@@ -40,14 +42,14 @@ async function loadImagefromPath(path, width = 224, height = 224) {
 }
 
 /**
- * Converts a Jimp image object to a tensor suitable for input into a neural network.
- * @param {Jimp} image - The Jimp image object to convert.
+ * Converts an ImageData object to a tensor suitable for input into a neural network.
+ * @param {ImageData} imageData - The ImageData object to convert.
  * @param {number[]} dims - The desired dimensions of the output tensor.
  * @returns {Tensor} A tensor representing the image data.
  */
-function imageDataToTensor(image, dims) {
+function imageDataToTensor(imageData, dims) {
   // 1. Get buffer data from image and create R, G, and B arrays.
-  var imageBufferData = image.bitmap.data;
+  const imageBufferData = imageData.data;
   const redArray = [];
   const greenArray = [];
   const blueArray = [];
@@ -60,17 +62,62 @@ function imageDataToTensor(image, dims) {
     // skip data[i + 3] to filter out the alpha channel
   }
 
-  // 3. Concatenate RGB to transpose [224, 224, 3] -> [3, 224, 224] to a number array
+  // 3. Concatenate RGB to transpose [height, width, 3] -> [3, height, width] to a number array
   const transposedData = redArray.concat(greenArray).concat(blueArray);
 
-  // 4. convert to float32
-  let i, l = transposedData.length; // length, we need this for the loop
-  // create the Float32Array size 3 * 224 * 224 for these dimensions output
+  // 4. Convert to float32
   const float32Data = new Float32Array(dims[1] * dims[2] * dims[3]);
-  for (i = 0; i < l; i++) {
+  for (let i = 0; i < transposedData.length; i++) {
     float32Data[i] = transposedData[i] / 255.0; // convert to float
   }
-  // 5. create the tensor object from onnxruntime-web.
+
+  // 5. Create the tensor object from onnxruntime-web.
   const inputTensor = new Tensor("float32", float32Data, dims);
+  return inputTensor;
+}
+
+/**
+ * Captures an image from a canvas and converts it to a tensor.
+ * @param {HTMLCanvasElement} canvas - The canvas element to capture the image from.
+ * @param {number[]} dims - The desired dimensions of the output tensor.
+ * @returns {Promise<Tensor>} A promise that resolves to a tensor representing the image.
+ */
+export async function getImageTensorFromCanvas(canvas, dims = [1, 3, 224, 224]) {
+  console.log('Getting image data from canvas...');
+  const context = canvas.getContext('2d');
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  console.log('Image data captured:', imageData);
+
+  const tensor = imageDataToTensor(imageData, dims);
+  console.log('Image data converted to tensor:', tensor);
+  return tensor;
+}
+
+
+/**
+ * Converts raw pixel data to a tensor suitable for a neural network.
+ * @param {Uint8Array} pixelData - The raw pixel data from the WebGL canvas.
+ * @param {number[]} dims - The desired dimensions of the output tensor [batchSize, channels, height, width].
+ * @returns {Tensor} A tensor representing the image data.
+ */
+export function pixelDataToTensor(pixelData, dims) {
+  const [batchSize, channels, height, width] = dims;
+  const float32Data = new Float32Array(height * width * channels);
+
+  let idx = 0;
+  // Loop through the pixel data and extract R, G, B channels, ignoring Alpha
+  for (let i = 0; i < pixelData.length; i += 4) {
+    const r = pixelData[i] / 255.0;     // Red channel normalized to [0, 1]
+    const g = pixelData[i + 1] / 255.0; // Green channel normalized to [0, 1]
+    const b = pixelData[i + 2] / 255.0; // Blue channel normalized to [0, 1]
+
+    // Store the RGB values in the float32 array in channel-first format (C, H, W)
+    float32Data[idx++] = r; // Red channel
+    float32Data[idx++] = g; // Green channel
+    float32Data[idx++] = b; // Blue channel
+  }
+
+  // Create and return the tensor
+  const inputTensor = new ort.Tensor('float32', float32Data, dims);
   return inputTensor;
 }

@@ -1,10 +1,15 @@
 import App from './App';
 import * as ort from 'onnxruntime-web/webgpu';
 
-let sessionPromise = ort.InferenceSession.create('./neuflow_things.onnx').then(sess => {
-  console.log('OnnxRuntime Web session created');
+let sessionPromise = ort.InferenceSession.create('./neuflow_things.onnx', {
+  executionProviders: ['cpu']
+}).then(sess => {
+  console.log('OnnxRuntime Web session created with WebGPU backend');
   return sess;
+}).catch(err => {
+  console.error('Error creating ONNX session:', err);
 });
+
 
 
 async function initializeApp() {
@@ -13,8 +18,7 @@ async function initializeApp() {
   try {
     // Start inference session with OnnxRuntime Web
     const session = await sessionPromise;
-    console.log('OnnxRuntime Web session created');
-
+    console.log('Session created:', session);
     const app = new App();
     await app.init();
 

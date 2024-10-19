@@ -1,168 +1,112 @@
-import * as THREE from 'three';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
+import React from 'react';
 
 /**
- * @function createPositionDisplay
- * @description Creates a DOM element to display the drone's position.
- * @returns {HTMLElement} The created position display element.
+ * Creates a position display element.
+ * @returns {HTMLElement} The DOM element for displaying position.
  */
-export function createPositionDisplay() {
-  const positionDisplay = document.createElement('div');
-  positionDisplay.style.position = 'absolute';
-  positionDisplay.style.bottom = '10px';
-  positionDisplay.style.right = '10px';
-  positionDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-  positionDisplay.style.color = 'white';
-  positionDisplay.style.padding = '10px';
-  positionDisplay.style.fontFamily = 'Arial, sans-serif';
-  positionDisplay.style.fontSize = '14px';
-  positionDisplay.style.borderRadius = '5px';
-  document.body.appendChild(positionDisplay);
-  return positionDisplay;
-}
+export const createPositionDisplay = () => {
+  const positionDiv = document.createElement('div');
+  positionDiv.style.position = 'absolute';
+  positionDiv.style.bottom = '10px';
+  positionDiv.style.left = '10px';
+  positionDiv.style.padding = '10px';
+  positionDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  positionDiv.style.color = 'white';
+  positionDiv.style.borderRadius = '5px';
+  positionDiv.style.fontFamily = 'Arial, sans-serif';
+  positionDiv.innerText = 'Position: (0, 0, 0)';
+  return positionDiv;
+};
 
 /**
- * @function updatePositionDisplay
- * @description Updates the position display with the current drone position.
- * @param {HTMLElement} display - The position display element.
- * @param {THREE.Vector3} position - The current position of the drone.
+ * Updates the position display with the current drone position.
+ * @param {HTMLElement} positionDiv - The position display element.
+ * @param {THREE.Vector3} position - The drone's current position.
  */
-export function updatePositionDisplay(display, position) {
-  display.textContent = `Position: 
-    X: ${position.x.toFixed(2)}
-    Y: ${position.y.toFixed(2)}
-    Z: ${position.z.toFixed(2)}`;
-}
+export const updatePositionDisplay = (positionDiv, position) => {
+  if (positionDiv && position) {
+    positionDiv.innerText = `Position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`;
+  }
+};
 
 /**
- * @function createControlBar
- * @description Creates a control bar for displaying drone input values.
- * @param {string} label - The label for the control bar.
- * @param {number} initialValue - The initial value of the control.
- * @param {number} min - The minimum value of the control.
- * @param {number} max - The maximum value of the control.
- * @returns {Object} An object containing the control bar elements.
+ * Creates a control bar for displaying channel values.
+ * @param {string} name - The name of the control bar.
+ * @param {number} value - The initial value.
+ * @param {number} min - The minimum value.
+ * @param {number} max - The maximum value.
+ * @returns {Object} The control bar object containing the container and value element.
  */
-export function createControlBar(label, initialValue, min, max) {
+export const createControlBar = (name, value, min, max) => {
   const container = document.createElement('div');
   container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  container.style.alignItems = 'flex-start';
+  container.style.alignItems = 'center';
+  container.style.gap = '5px';
 
-  const labelElem = document.createElement('span');
-  labelElem.textContent = `${label}: ${initialValue}`;
-  labelElem.style.color = 'white';
-  labelElem.style.marginBottom = '5px';
-  container.appendChild(labelElem);
+  const label = document.createElement('span');
+  label.innerText = `${name}:`;
+  container.appendChild(label);
 
-  const bar = document.createElement('div');
-  bar.style.width = '100%';
-  bar.style.height = '20px';
-  bar.style.backgroundColor = '#555';
-  bar.style.borderRadius = '10px';
-  bar.style.overflow = 'hidden';
-  container.appendChild(bar);
+  const valueSpan = document.createElement('span');
+  valueSpan.innerText = value;
+  container.appendChild(valueSpan);
 
-  const fill = document.createElement('div');
-  fill.style.height = '100%';
-  fill.style.width = `${((initialValue - min) / (max - min)) * 100}%`;
-  fill.style.backgroundColor = getBarColor(label);
-  fill.style.transition = 'width 0.1s ease-in-out';
-  bar.appendChild(fill);
-
-  return { container, fill, labelElem, min, max };
-}
+  return { container, valueSpan };
+};
 
 /**
- * @function updateControlBar
- * @description Updates a control bar with a new value.
+ * Updates the control bar with the current channel value.
  * @param {Object} controlBar - The control bar object.
- * @param {number} value - The new value for the control bar.
+ * @param {number} value - The current value of the channel.
  */
-export function updateControlBar(controlBar, value) {
-  const { fill, labelElem, min, max } = controlBar;
-  const clampedValue = Math.min(Math.max(value, min), max);
-  const percentage = ((clampedValue - min) / (max - min)) * 100;
-  fill.style.width = `${percentage}%`;
-  labelElem.textContent = `${labelElem.textContent.split(':')[0]}: ${clampedValue}`;
-}
-
-/**
- * @function getBarColor
- * @private
- * @description Returns a color for a control bar based on its label.
- * @param {string} label - The label of the control bar.
- * @returns {string} The color for the control bar.
- */
-function getBarColor(label) {
-  switch (label) {
-    case 'Roll': return '#ff0000'; // Red
-    case 'Pitch': return '#00ff00'; // Green
-    case 'Yaw': return '#0000ff'; // Blue
-    case 'Throttle': return '#ffff00'; // Yellow
-    default: return '#ffffff'; // White
+export const updateControlBar = (controlBar, value) => {
+  if (controlBar && controlBar.valueSpan) {
+    controlBar.valueSpan.innerText = value;
   }
-}
+};
 
 /**
- * @function createPerformanceStats
- * @description Creates a performance stats display using Stats.js.
- * @returns {Stats} The created Stats object.
+ * Creates performance stats using Stats.js.
+ * @returns {Stats} The Stats instance.
  */
-export function createPerformanceStats() {
+export const createPerformanceStats = () => {
+  const Stats = require('stats.js'); // Ensure stats.js is installed
   const stats = new Stats();
   stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
   document.body.appendChild(stats.dom);
-  stats.dom.style.position = 'absolute';
-  stats.dom.style.top = '10px';
-  stats.dom.style.left = '10px';
   return stats;
-}
+};
 
 /**
- * @function createCompass
- * @description Creates a compass display for showing drone orientation.
- * @returns {HTMLElement} The created compass element.
+ * Creates a compass element.
+ * @returns {HTMLElement} The compass element.
  */
-export function createCompass() {
-  const compass = document.createElement('div');
-  compass.style.position = 'absolute';
-  compass.style.top = '10px';
-  compass.style.left = '50%';
-  compass.style.transform = 'translateX(-50%)';
-  compass.style.width = '100px';
-  compass.style.height = '100px';
-  compass.style.borderRadius = '50%';
-  compass.style.border = '2px solid white';
-  compass.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-
-  const needle = document.createElement('div');
-  needle.style.position = 'absolute';
-  needle.style.top = '10px';
-  needle.style.left = '50%';
-  needle.style.width = '2px';
-  needle.style.height = '40px';
-  needle.style.backgroundColor = 'red';
-  needle.style.transformOrigin = 'bottom center';
-
-  compass.appendChild(needle);
-  document.body.appendChild(compass);
-
-  return compass;
-}
+export const createCompass = () => {
+  const compassDiv = document.createElement('div');
+  compassDiv.style.position = 'absolute';
+  compassDiv.style.top = '10px';
+  compassDiv.style.left = '220px';
+  compassDiv.style.width = '100px';
+  compassDiv.style.height = '100px';
+  compassDiv.style.border = '2px solid white';
+  compassDiv.style.borderRadius = '50%';
+  compassDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  compassDiv.style.display = 'flex';
+  compassDiv.style.alignItems = 'center';
+  compassDiv.style.justifyContent = 'center';
+  compassDiv.innerText = 'Compass';
+  return compassDiv;
+};
 
 /**
- * @function updateCompass
- * @description Updates the compass display based on the drone's orientation.
+ * Updates the compass based on drone's orientation.
  * @param {HTMLElement} compass - The compass element.
  * @param {THREE.Quaternion} quaternion - The drone's current orientation.
  */
-export function updateCompass(compass, quaternion) {
-  const needle = compass.firstChild;
-  const euler = new THREE.Euler().setFromQuaternion(quaternion, 'YXZ');
-  
-  let yawDegrees = THREE.MathUtils.radToDeg(euler.y);
-  yawDegrees = (yawDegrees + 360) % 360;
-
-  needle.style.transform = `translateX(-50%) rotate(${yawDegrees}deg)`;
-}
+export const updateCompass = (compass, quaternion) => {
+  if (compass && quaternion) {
+    const euler = new THREE.Euler().setFromQuaternion(quaternion);
+    const yaw = THREE.MathUtils.radToDeg(euler.y);
+    compass.innerText = `Yaw: ${yaw.toFixed(2)}°`;
+  }
+};

@@ -134,12 +134,12 @@ export function startFrameCapture(fpvRenderer, scene, camera, interval = 10000) 
             console.log('Input tensor:', inputTensor);
 
             // Run inference on the captured frame
-            try {
-                const outputData = await runInferenceOnFrameCapture(inputTensor);
-                console.log('Inference output:', outputData);
-            } catch (error) {
-                console.error('Error during inference:', error);
-            }
+            // try {
+            //     const outputData = await runInferenceOnFrameCapture(inputTensor);
+            //     console.log('Inference output:', outputData);
+            // } catch (error) {
+            //     console.error('Error during inference:', error);
+            // }
         }
     };
 

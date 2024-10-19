@@ -15,6 +15,7 @@ class DroneScene extends THREE.Scene {
     super();
     this.drone = null;
     this.environment = null;
+    console.log('DroneScene constructor: Scene initialized');
   }
 
   /**
@@ -23,13 +24,17 @@ class DroneScene extends THREE.Scene {
    * @description Initializes the scene, setting up lights, creating the drone, and loading the environment.
    */
   async init() {
+    console.log('DroneScene init: Initializing scene');
+
     // Add lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     this.add(ambientLight);
+    console.log('DroneScene init: Ambient light added');
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     directionalLight.position.set(10, 10, 10);
     this.add(directionalLight);
+    console.log('DroneScene init: Directional light added');
 
     // Create cube drone
     this.createCubeDrone();
@@ -40,6 +45,7 @@ class DroneScene extends THREE.Scene {
     // Skybox (simple color for now)
     const skyColor = new THREE.Color(0x87CEEB);
     this.background = skyColor;
+    console.log('DroneScene init: Skybox color set');
   }
 
   /**
@@ -57,6 +63,7 @@ class DroneScene extends THREE.Scene {
     this.drone.rotation.y = 0;
     
     this.add(this.drone);
+    console.log('DroneScene createCubeDrone: Drone created and added to scene');
   }
 
   /**
@@ -78,22 +85,15 @@ class DroneScene extends THREE.Scene {
         '/assets/models/gltf_enviorment3/Map_v1.gltf', // Adjust this path to your GLTF file
         (gltf) => {
           this.environment = gltf.scene;
-          
-          // Optional: Adjust the scale of the loaded environment if needed
-          // this.environment.scale.set(10, 10, 10);
-
-          // Optional: Adjust the position of the loaded environment if needed
-          // this.environment.position.set(0, 0, 0);
-
           this.add(this.environment);
-          console.log('Environment loaded successfully');
+          console.log('DroneScene loadEnvironment: Environment loaded successfully');
           resolve();
         },
         (xhr) => {
-          console.log((xhr.loaded / xhr.total) * 100 + '% loaded');
+          console.log(`DroneScene loadEnvironment: ${(xhr.loaded / xhr.total) * 100}% loaded`);
         },
         (error) => {
-          console.error('An error happened', error);
+          console.error('DroneScene loadEnvironment: An error happened', error);
           reject(error);
         }
       );

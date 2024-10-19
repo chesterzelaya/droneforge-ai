@@ -1,102 +1,86 @@
 import * as ort from 'onnxruntime-web';
-import { sessionPromise } from '../main';
-import { getImageTensorFromCanvas } from '../utils/imageHelper'; // New function to be created
 
 /**
- * Retrieves the ONNX session from the promise in main.js.
- * @returns {Promise<ort.InferenceSession>} A promise that resolves to the ONNX session.
+ * Initialize the ONNX Inference Session.
+ * This function ensures that the session is created only once.
  */
-async function useSession() {
-    const session = await sessionPromise;
-    // getModelShapes(session);
-    return session;
-}
+let sessionPromise = null;
+
+/**
+ * Loads the ONNX model and initializes the inference session.
+ * @returns {Promise<ort.InferenceSession>} A promise that resolves to the ONNX inference session.
+ */
+export const initializeSession = () => {
+  if (!sessionPromise) {
+    console.log('Initializing ONNX Inference Session...');
+    sessionPromise = ort.InferenceSession.create('./neuflow_things.onnx', {
+      executionProviders: ['cpu'], // Add other execution providers if needed
+    })
+      .then((sess) => {
+        console.log('ONNX Inference Session initialized successfully.');
+        logModelInfo(sess);
+        return sess;
+      })
+      .catch((err) => {
+        console.error('Error initializing ONNX Inference Session:', err);
+        throw err;
+      });
+  }
+  return sessionPromise;
+};
+
+/**
+ * Logs information about the loaded model.
+ * @param {ort.InferenceSession} session - The ONNX inference session.
+ */
+const logModelInfo = (session) => {
+  const inputNames = session.inputNames;
+  const outputNames = session.outputNames;
+  const inputShapes = inputNames.map((name) => session.input(name).dims);
+  const outputShapes = outputNames.map((name) => session.output(name).dims);
+
+  console.log('Model input names:', inputNames);
+  console.log('Model input shapes:', inputShapes);
+  console.log('Model output names:', outputNames);
+  console.log('Model output shapes:', outputShapes);
+};
 
 /**
  * Runs the ONNX model on the preprocessed data.
- * @param {Tensor} preprocessedData - The preprocessed input data as a tensor.
+ * @param {ort.Tensor} preprocessedData - The preprocessed input data as a tensor.
  * @returns {Promise<ort.Tensor>} A promise that resolves to the model's output tensor.
  */
-export async function runSessionModel(preprocessedData) {
-    const session = await useSession();
-    console.log('Inference session found');
-    const outputData = await runInference(session, preprocessedData);
-    return outputData;
-}
+export const runSessionModel = async (preprocessedData) => {
+  try {
+    const session = await initializeSession();
+    console.log('Running inference...');
+    const feeds = { [session.inputNames[0]]: preprocessedData };
 
-/**
- * Performs the actual inference using the ONNX session.
- * @param {ort.InferenceSession} session - The ONNX inference session.
- * @param {Tensor} preprocessedData - The preprocessed input data as a tensor.
- * @returns {Promise<ort.Tensor>} A promise that resolves to the model's output tensor.
- */
-async function runInference(session, preprocessedData) {
-    const start = new Date();
-    const feeds = {};
-    
-    // Ensure that the input name matches what the model expects
-    // let inputName = session.inputNames[0];
-    // if (!preprocessedData) {
-    //     throw new Error(`Preprocessed data is missing for input: ${inputName}`);
-    // }
-
-    feeds[session.inputNames[0]] = preprocessedData;
-
-    // Assuming the model has two inputs with the same data
-    feeds[session.inputNames[1]] = preprocessedData;
+    // If your model has multiple inputs with the same data, uncomment the following line
+    // feeds[session.inputNames[1]] = preprocessedData;
 
     const outputData = await session.run(feeds);
-    
-    const end = new Date();
-    const inferenceTime = (end.getTime() - start.getTime()) / 1000;
-    console.log(`Inference time: ${inferenceTime} seconds`);
-
-    const output = outputData[session.outputNames[0]];
-    console.log('output after runInference(): ', output);
-    return output;
-}
+    console.log('Inference completed:', outputData);
+    return outputData;
+  } catch (error) {
+    console.error('Error during inference:', error);
+    throw error;
+  }
+};
 
 /**
  * Runs inference on a frame captured from the livestream.
- * @param {Tensor} inputTensor - The tensor containing the captured frame.
+ * @param {ort.Tensor} inputTensor - The tensor containing the captured frame.
  * @returns {Promise<ort.Tensor>} A promise that resolves to the model's output tensor.
  */
-export async function runInferenceOnFrameCapture(inputTensor) {
+export const runInferenceOnFrameCapture = async (inputTensor) => {
   try {
-    console.log('-----1. Running model inference on tensor')
-    // Run the model
-    console.log('Running model inference using runInferenceOnFrameCapture...');
+    console.log('Running model inference on captured frame...');
     const outputData = await runSessionModel(inputTensor);
-    console.log('Model inference completed:', outputData);
+    console.log('Model inference on captured frame completed:', outputData);
     return outputData;
   } catch (error) {
     console.error('Error during livestream inference:', error);
     throw error;
   }
-}
-
-
-// async function getModelShapes(session) {
-//     // Get the input names
-//     const inputNames = session.inputNames;
-//     console.log('---------Input Names:', inputNames);
-//     console.log('---------Input Metadata:', session.outputShape);
-  
-//     // Loop through the input names to get shapes from the metadata
-//     inputNames.forEach((inputName) => {
-//       const inputMetadata = session.inputMetadata[0];
-//       const inputShape = inputMetadata.dimensions;
-//       console.log(`Input Name: ${inputName}, Shape:`, inputShape);
-//     });
-  
-//     // Get the output names
-//     const outputNames = session.outputNames;
-//     console.log('Output Names:', outputNames);
-  
-//     // Loop through the output names to get shapes from the metadata
-//     outputNames.forEach((outputName) => {
-//       const outputMetadata = session.outputMetadata[outputName];
-//       const outputShape = outputMetadata.dimensions;
-//       console.log(`Output Name: ${outputName}, Shape:`, outputShape);
-//     });
-// }
+};

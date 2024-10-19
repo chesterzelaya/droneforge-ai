@@ -3,28 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Drone Simulation</title>
-  <!-- The CSS bundle will be injected automatically by HtmlWebpackPlugin -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self';">
   <style>
     body { margin: 0; }
     canvas { display: block; }
-    #loading { 
-      position: fixed; 
-      top: 50%; 
-      left: 50%; 
-      transform: translate(-50%, -50%); 
-      font-family: Arial, sans-serif; 
-      color: white;
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      border-radius: 10px;
-      z-index: 2000;
-    }
   </style>
 </head>
 <body>
-  <div id="loading">Loading...</div>
   <div id="app"></div>
-  <!-- Ammo.js is loaded separately; ensure it's compatible with your simulation -->
   <script src="ammo.js"></script>
 </body>
 </html>

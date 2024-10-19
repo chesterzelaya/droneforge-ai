@@ -1,4 +1,4 @@
-import React from 'react';
+import * as THREE from 'three';
 
 /**
  * Creates a position display element.

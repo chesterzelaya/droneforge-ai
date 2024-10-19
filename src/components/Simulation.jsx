@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import * as THREE from 'three';
 import DroneScene from '../scenes/DroneScene';
 import DroneControls from '../controls/DroneControls';
@@ -10,6 +10,7 @@ import {
   updateControlBar,
   createPerformanceStats,
   createCompass,
+  updateCompass, // Ensure this is imported
 } from '../utils/helperFunctions';
 import {
   createFPVDisplay,
@@ -19,6 +20,7 @@ import {
   startFrameCapture,
 } from '../utils/fpvUtils';
 import { runInferenceOnFrameCapture } from '../inference/modelHelper';
+import { LoadingContext } from '../context/LoadingContext';
 
 const Simulation = () => {
   const mountRef = useRef(null);
@@ -27,15 +29,19 @@ const Simulation = () => {
   const controlBarsRef = useRef(null);
   const compassRef = useRef(null);
   const statsRef = useRef(null);
+  const { addLog } = useContext(LoadingContext);
 
   useEffect(() => {
     // Initialize Three.js Renderer
+    addLog('Initializing Three.js Renderer...');
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     mountRef.current.appendChild(renderer.domElement);
+    addLog('Three.js Renderer initialized.');
 
     // Initialize Scene and Camera
-    const scene = new DroneScene();
+    addLog('Initializing Drone Scene...');
+    const scene = new DroneScene(addLog); // Pass addLog here
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -44,36 +50,46 @@ const Simulation = () => {
     );
     camera.position.set(0, 5, -10);
     camera.lookAt(0, 0, 0);
+    addLog('Drone Scene and Camera initialized.');
 
     // Initialize Controls and Physics
+    addLog('Initializing Drone Controls...');
     const controls = new DroneControls();
+    addLog('Drone Controls initialized.');
+
+    addLog('Initializing Physics Engine...');
     const physicsEngine = new PhysicsEngine(controls);
+    addLog('Physics Engine initialized.');
 
     // Initialize the scene and physics engine
     scene.init().then(() => {
-      console.log('DroneScene initialized successfully');
+      addLog('Drone Scene initialized successfully.');
       physicsEngine.init(scene).then(() => {
-        console.log('PhysicsEngine initialized successfully');
+        addLog('Physics Engine initialized successfully.');
       }).catch((error) => {
-        console.error('Error initializing PhysicsEngine:', error);
+        addLog(`Error initializing Physics Engine: ${error.message}`);
       });
     }).catch((error) => {
-      console.error('Error initializing DroneScene:', error);
+      addLog(`Error initializing Drone Scene: ${error.message}`);
     });
 
     // Initialize UI Elements
+    addLog('Creating UI Elements...');
     const positionDisplay = createPositionDisplay();
     mountRef.current.appendChild(positionDisplay);
+    addLog('Position Display created.');
 
     const fpvRenderer = createFPVDisplay();
     if (fpvMountRef.current) {
       fpvMountRef.current.appendChild(fpvRenderer.domElement);
+      addLog('FPV Renderer created.');
     }
 
     const axesRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     axesRenderer.setSize(100, 100);
     if (axesMountRef.current) {
       axesMountRef.current.appendChild(axesRenderer.domElement);
+      addLog('Axes Renderer created.');
     }
     const axesScene = new THREE.Scene();
     const axesCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 10);
@@ -81,6 +97,7 @@ const Simulation = () => {
     axesCamera.lookAt(0, 0, 0);
     const axesHelper = new THREE.AxesHelper(2);
     axesScene.add(axesHelper);
+    addLog('Axes Scene and Helper initialized.');
 
     const controlDisplay = document.createElement('div');
     controlDisplay.style.position = 'absolute';
@@ -94,54 +111,52 @@ const Simulation = () => {
     controlDisplay.style.flexDirection = 'column';
     controlDisplay.style.gap = '10px';
     mountRef.current.appendChild(controlDisplay);
+    addLog('Control Display container created.');
 
     const controlBars = {
       roll: createControlBar('Roll', 1500, 0, 3000),
       pitch: createControlBar('Pitch', 1500, 0, 3000),
       yaw: createControlBar('Yaw', 1500, 0, 3000),
-      throttle: createControlBar('Throttle', 1500, 0, 3000),
+      throttle: createControlBar('Throttle', 0, 0, 3000),
     };
 
-    Object.values(controlBars).forEach((bar) => {
-      controlDisplay.appendChild(bar.container);
-    });
+    Object.values(controlBars).forEach((bar) => controlDisplay.appendChild(bar.container));
+    addLog('Control Bars created.');
 
     const compass = createCompass();
     mountRef.current.appendChild(compass);
+    addLog('Compass created.');
 
-    // Initialize Performance Stats
     const stats = createPerformanceStats();
-    statsRef.current = stats;
-    mountRef.current.appendChild(stats.dom);
+    addLog('Performance Stats created.');
 
-    // Handle Window Resize
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
+
     window.addEventListener('resize', handleResize);
 
-    // Animation Loop
     const animate = () => {
-      stats.begin();
-
       requestAnimationFrame(animate);
+      stats.begin();
 
       // Update physics engine
       physicsEngine.update();
 
+      // Update controls with the drone's current orientation
       if (scene.drone && scene.drone.quaternion) {
         controls.update(scene.drone.quaternion);
       } else {
         controls.update();
       }
 
-      // Update Camera Positions
+      // Update camera positions
       updateCameraPosition(camera, scene.drone);
       updateFPVCameraPosition(fpvRenderer, scene.drone);
 
-      // Render Scenes
+      // Render main view, FPV, and axes
       renderer.render(scene, camera);
       fpvRenderer.render(scene, camera);
       if (scene.drone) {
@@ -149,18 +164,19 @@ const Simulation = () => {
         axesRenderer.render(axesScene, axesCamera);
       }
 
-      // Update UI Elements
+      // Update UI elements
       if (scene.drone) {
         updatePositionDisplay(positionDisplay, scene.drone.position);
-        // Assuming you have a function to update the compass
-        // updateCompass(compass, scene.drone.quaternion);
+        updateCompass(compass, scene.drone.quaternion);
       }
-      updateControlBarsDisplay(controlBars, controls.channels);
+      updateControlBars(); // Call directly
+      updateControlBarsDisplay(controlBars, controls.getControlInputs());
 
       stats.end();
     };
 
     animate();
+    addLog('Animation loop started.');
 
     // Cleanup on Unmount
     return () => {
@@ -176,8 +192,9 @@ const Simulation = () => {
       mountRef.current.removeChild(controlDisplay);
       mountRef.current.removeChild(compass);
       mountRef.current.removeChild(stats.dom);
+      addLog('Cleanup completed on unmount.');
     };
-  }, []);
+  }, [addLog]);
 
   // Helper Functions to Update Camera Positions
   const updateCameraPosition = (camera, drone) => {
@@ -219,6 +236,10 @@ const Simulation = () => {
     updateControlBar(controlBars.pitch, pitch);
     updateControlBar(controlBars.yaw, yaw);
     updateControlBar(controlBars.throttle, throttle);
+  };
+
+  const updateControlBars = () => {
+    // Implement any additional logic if needed
   };
 
   return (

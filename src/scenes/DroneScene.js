@@ -10,12 +10,14 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 class DroneScene extends THREE.Scene {
   /**
    * @constructor
+   * @param {Function} addLog - Function to log messages.
    */
-  constructor() {
+  constructor(addLog) {
     super();
     this.drone = null;
     this.environment = null;
-    console.log('DroneScene constructor: Scene initialized');
+    this.addLog = addLog;
+    this.addLog('DroneScene constructor: Scene initialized');
   }
 
   /**
@@ -24,28 +26,34 @@ class DroneScene extends THREE.Scene {
    * @description Initializes the scene, setting up lights, creating the drone, and loading the environment.
    */
   async init() {
-    console.log('DroneScene init: Initializing scene');
+    this.addLog('DroneScene init: Initializing scene');
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    this.add(ambientLight);
-    console.log('DroneScene init: Ambient light added');
+    try {
+      // Add ambient light
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      this.add(ambientLight);
+      this.addLog('DroneScene init: Ambient light added');
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(10, 10, 10);
-    this.add(directionalLight);
-    console.log('DroneScene init: Directional light added');
+      // Add directional light
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      directionalLight.position.set(10, 10, 10);
+      this.add(directionalLight);
+      this.addLog('DroneScene init: Directional light added');
 
-    // Create cube drone
-    this.createCubeDrone();
+      // Create drone
+      this.createCubeDrone();
 
-    // Load new environment
-    await this.loadEnvironment();
+      // Load environment
+      await this.loadEnvironment();
 
-    // Skybox (simple color for now)
-    const skyColor = new THREE.Color(0x87CEEB);
-    this.background = skyColor;
-    console.log('DroneScene init: Skybox color set');
+      // Set sky color
+      const skyColor = new THREE.Color(0x87CEEB);
+      this.background = skyColor;
+      this.addLog('DroneScene init: Skybox color set');
+    } catch (error) {
+      this.addLog(`DroneScene init: Initialization failed - ${error.message}`);
+      throw error; // Re-throw to allow higher-level handling
+    }
   }
 
   /**
@@ -58,12 +66,12 @@ class DroneScene extends THREE.Scene {
     const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
     this.drone = new THREE.Mesh(geometry, material);
     this.drone.position.set(0, 5, 0);
-    
+
     // Ensure the drone is facing north (negative Z-axis)
     this.drone.rotation.y = 0;
-    
+
     this.add(this.drone);
-    console.log('DroneScene createCubeDrone: Drone created and added to scene');
+    this.addLog('DroneScene createCubeDrone: Drone created and added to scene');
   }
 
   /**
@@ -76,24 +84,25 @@ class DroneScene extends THREE.Scene {
     return new Promise((resolve, reject) => {
       const loader = new GLTFLoader();
 
-      // Optional: Use DRACOLoader for compressed meshes
+      // Use DRACOLoader for compressed meshes
       const dracoLoader = new DRACOLoader();
-      dracoLoader.setDecoderPath('/draco/'); // Adjust this path if needed
+      dracoLoader.setDecoderPath('/draco/'); // Ensure the path is correct
       loader.setDRACOLoader(dracoLoader);
 
+      // Ensure the path is correct and accessible
       loader.load(
-        '/assets/models/gltf_enviorment3/Map_v1.gltf', // Adjust this path to your GLTF file
+        '/assets/models/gltf_enviorment3/Map_v1.gltf', // Correct the directory name here
         (gltf) => {
           this.environment = gltf.scene;
           this.add(this.environment);
-          console.log('DroneScene loadEnvironment: Environment loaded successfully');
+          this.addLog('DroneScene loadEnvironment: Environment loaded successfully');
           resolve();
         },
         (xhr) => {
-          console.log(`DroneScene loadEnvironment: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+          this.addLog(`DroneScene loadEnvironment: ${(xhr.loaded / xhr.total) * 100}% loaded`);
         },
         (error) => {
-          console.error('DroneScene loadEnvironment: An error happened', error);
+          this.addLog(`DroneScene loadEnvironment: An error occurred - ${error.message}`);
           reject(error);
         }
       );

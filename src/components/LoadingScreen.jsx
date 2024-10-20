@@ -1,18 +1,123 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import './LoadingScreen.css'; // Ensure this path is correct
+import * as THREE from 'three';
 
 const LoadingScreen = ({ logs }) => {
+  const orbRef = useRef(null);
+  const rendererRef = useRef(null);
+  const mousePosition = useRef(new THREE.Vector2(0, 0));
+
+  useEffect(() => {
+    if (!orbRef.current) return;
+
+    // Set up the Three.js scene
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    orbRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    // Create a crystal-like geometry
+    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        time: { value: 0 },
+        mousePosition: { value: new THREE.Vector2(0, 0) },
+        backgroundColor: { value: new THREE.Color(0x050a0e) },
+        accentColor: { value: new THREE.Color(0x00F135) },
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec2 vUv;
+        uniform vec2 mousePosition;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vUv = uv;
+          vec3 pos = position;
+          float distanceToMouse = length(mousePosition - vec2(pos.x, pos.y));
+          pos += normal * sin(distanceToMouse * 10.0) * 0.02;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float time;
+        uniform vec3 backgroundColor;
+        uniform vec3 accentColor;
+        varying vec3 vNormal;
+        varying vec2 vUv;
+        void main() {
+          float fresnel = pow(1.0 - dot(vNormal, vec3(0, 0, 1.0)), 3.0);
+          vec3 color = mix(backgroundColor, accentColor, fresnel * 0.3);
+          float pulse = sin(time * 1.5 + vUv.y * 8.0) * 0.5 + 0.5;
+          color = mix(color, accentColor, pulse * fresnel * 0.2);
+          gl_FragColor = vec4(color, 0.8 + fresnel * 0.2);
+        }
+      `,
+      transparent: true,
+    });
+
+    const orb = new THREE.Mesh(geometry, material);
+    scene.add(orb);
+
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xffffff, 1);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+
+    camera.position.z = 2.5;
+
+    // Mouse movement effect
+    const onMouseMove = (event) => {
+      const targetX = (event.clientX / window.innerWidth) * 2 - 1;
+      const targetY = -(event.clientY / window.innerHeight) * 2 + 1;
+      mousePosition.current.x += (targetX - mousePosition.current.x) * 0.05;
+      mousePosition.current.y += (targetY - mousePosition.current.y) * 0.05;
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+
+    // Animation loop
+    const animate = (time) => {
+      requestAnimationFrame(animate);
+      orb.rotation.x += 0.001;
+      orb.rotation.y += 0.002;
+      material.uniforms.time.value = time * 0.001;
+      material.uniforms.mousePosition.value.copy(mousePosition.current);
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      if (orbRef.current && rendererRef.current) {
+        orbRef.current.removeChild(rendererRef.current.domElement);
+      }
+      renderer.dispose();
+    };
+  }, []);
+
   return (
     <div className="loading-container">
+      <div className="glow-background"></div>
+      <div id="orb-container" ref={orbRef}></div>
       <div className="loading-content">
-        <h1>Drone Simulation Loading...</h1>
-        <div className="loading-spinner"></div>
+        <h1 className="title">DRONEFORGE-SDK</h1>
+        <div className="loading-text">Initializing Simulation</div>
+        <div className="loading-bar-container">
+          <div className="loading-bar"></div>
+        </div>
       </div>
       <div className="log-container">
-        <h2>Loading Logs</h2>
+        <h2>Forge Progress</h2>
         <div className="logs">
-          {logs.map((log, index) => (
+          {logs.slice(-5).map((log, index) => (
             <div key={index} className="log-entry">
+              <span className="log-bullet"></span>
               {log}
             </div>
           ))}

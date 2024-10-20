@@ -10,7 +10,7 @@ import {
   updateControlBar,
   createPerformanceStats,
   createCompass,
-  updateCompass, // Ensure this is imported
+  updateCompass,
 } from '../utils/helperFunctions';
 import {
   createFPVDisplay,
@@ -32,6 +32,8 @@ const Simulation = () => {
   const { addLog } = useContext(LoadingContext);
 
   useEffect(() => {
+    if (!mountRef.current) return;
+
     // Initialize Three.js Renderer
     addLog('Initializing Three.js Renderer...');
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -169,7 +171,6 @@ const Simulation = () => {
         updatePositionDisplay(positionDisplay, scene.drone.position);
         updateCompass(compass, scene.drone.quaternion);
       }
-      updateControlBars(); // Call directly
       updateControlBarsDisplay(controlBars, controls.getControlInputs());
 
       stats.end();
@@ -181,17 +182,19 @@ const Simulation = () => {
     // Cleanup on Unmount
     return () => {
       window.removeEventListener('resize', handleResize);
-      mountRef.current.removeChild(renderer.domElement);
-      mountRef.current.removeChild(positionDisplay);
+      if (mountRef.current) {
+        mountRef.current.removeChild(renderer.domElement);
+        mountRef.current.removeChild(positionDisplay);
+        mountRef.current.removeChild(controlDisplay);
+        mountRef.current.removeChild(compass);
+      }
       if (fpvMountRef.current) {
         fpvMountRef.current.removeChild(fpvRenderer.domElement);
       }
       if (axesMountRef.current) {
         axesMountRef.current.removeChild(axesRenderer.domElement);
       }
-      mountRef.current.removeChild(controlDisplay);
-      mountRef.current.removeChild(compass);
-      mountRef.current.removeChild(stats.dom);
+      document.body.removeChild(stats.dom);
       addLog('Cleanup completed on unmount.');
     };
   }, [addLog]);
@@ -232,29 +235,17 @@ const Simulation = () => {
 
   const updateControlBarsDisplay = (controlBars, channels) => {
     const { roll, pitch, yaw, throttle } = channels;
-    updateControlBar(controlBars.roll, roll);
-    updateControlBar(controlBars.pitch, pitch);
-    updateControlBar(controlBars.yaw, yaw);
-    updateControlBar(controlBars.throttle, throttle);
-  };
-
-  const updateControlBars = () => {
-    // Implement any additional logic if needed
+    updateControlBar(controlBars.roll, roll * 1500 + 1500); // Convert back to 0-3000 range
+    updateControlBar(controlBars.pitch, pitch * 1500 + 1500); // Convert back to 0-3000 range
+    updateControlBar(controlBars.yaw, yaw * 1500 + 1500); // Convert back to 0-3000 range
+    updateControlBar(controlBars.throttle, throttle * 3000); // Convert back to 0-3000 range
   };
 
   return (
     <>
-      {/* Mount Point for Main Renderer */}
       <div ref={mountRef} />
-
-      {/* Mount Point for FPV Renderer */}
       <div ref={fpvMountRef} />
-
-      {/* Mount Point for Axes Renderer */}
       <div ref={axesMountRef} />
-
-      {/* Mount Point for Control Bars */}
-      {/* If additional mount points are needed, add them here */}
     </>
   );
 };

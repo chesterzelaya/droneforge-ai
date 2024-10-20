@@ -94,10 +94,10 @@ class DroneControls {
 
       if (this.gamepadHandler.connected) {
         // Use gamepad input directly
-        this.channels.roll = gamepadAxes[0];
-        this.channels.pitch = gamepadAxes[1];
-        this.channels.yaw = gamepadAxes[2];
-        this.channels.throttle = gamepadAxes[3];
+        this.channels.roll = this.clampValue(gamepadAxes[0], 0, 3000);
+        this.channels.pitch = this.clampValue(gamepadAxes[1], 0, 3000);
+        this.channels.yaw = this.clampValue(gamepadAxes[2], 0, 3000);
+        this.channels.throttle = this.clampValue(gamepadAxes[3], 0, 3000);
       } else {
         // Use keyboard input with swapped controls
         if (this.keyStates['KeyA']) this.channels.yaw = Math.max(0, this.channels.yaw - this.controlRate);
@@ -145,6 +145,19 @@ class DroneControls {
      */
     moveTowardsZero(value, rate = 5) {
       return Math.max(0, value - rate);
+    }
+
+    /**
+     * @method clampValue
+     * @private
+     * @param {number} value - The value to clamp.
+     * @param {number} min - The minimum value.
+     * @param {number} max - The maximum value.
+     * @returns {number} The clamped value.
+     * Clamps a value between a minimum and maximum.
+     */
+    clampValue(value, min, max) {
+      return Math.max(min, Math.min(max, value));
     }
 
     /**

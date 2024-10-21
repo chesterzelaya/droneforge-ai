@@ -1,0 +1,11 @@
+.appContainer {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.simulationContent {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}

@@ -4,6 +4,8 @@ import ModelSlider from './components/ModelSlider';
 import ErrorBoundary from './components/ErrorBoundary'; // Ensure this import is correct
 import { LoadingContext, LoadingProvider } from './context/LoadingContext';
 import LoadingScreen from './components/LoadingScreen';
+import SimulationHub from './components/SimulationHub';
+import * as styles from './App.module.css';
 
 const AppContent = () => {
   const { logs, addLog } = useContext(LoadingContext);
@@ -48,8 +50,13 @@ const AppContent = () => {
 
   return (
     <ErrorBoundary>
-      <Simulation />
-      <ModelSlider />
+      <div className={styles.appContainer}>
+        <SimulationHub />
+        <div className={styles.simulationContent}>
+          <Simulation />
+          <ModelSlider />
+        </div>
+      </div>
     </ErrorBoundary>
   );
 };

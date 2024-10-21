@@ -101,7 +101,7 @@ const Simulation = () => {
     mountRef.current.appendChild(positionDisplay);
     addLog('Position Display created.');
 
-    const fpvRenderer = createFPVDisplay(mountRef.current);
+    const { fpvRenderer, updateRendererSize } = createFPVDisplay(mountRef.current);
     addLog('FPV Display created.');
 
     /**
@@ -152,6 +152,7 @@ const Simulation = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      updateRendererSize(); // Update FPV renderer size
     };
 
     window.addEventListener('resize', handleResize);
@@ -286,7 +287,7 @@ const Simulation = () => {
   };
 
   return (
-    <div ref={mountRef} />
+    <div ref={mountRef} style={{ position: 'relative', width: '100%', height: '100%' }} />
   );
 };
 

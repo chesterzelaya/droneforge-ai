@@ -10,25 +10,46 @@ import { pixelDataToTensor } from './imageHelper';
  */
 export function createFPVDisplay(mountElement) {
     console.log('Creating FPV display...');
-    const fpvDisplay = document.createElement('div');
-    fpvDisplay.style.position = 'absolute';
-    fpvDisplay.style.top = '10px';
-    fpvDisplay.style.left = '10px';
-    fpvDisplay.style.width = '384px';
-    fpvDisplay.style.height = '216px';
-    fpvDisplay.style.border = '2px solid white';
-    mountElement.appendChild(fpvDisplay);
-    console.log('FPV display created:', fpvDisplay);
+    
+    // Create a container for the FPV display
+    const fpvContainer = document.createElement('div');
+    fpvContainer.style.position = 'absolute';
+    fpvContainer.style.top = '2%';
+    fpvContainer.style.left = '5%';
+    fpvContainer.style.width = '30%';
+    fpvContainer.style.maxWidth = '384px';
+    fpvContainer.style.aspectRatio = '16 / 9';
+    fpvContainer.style.border = '2px solid white';
+    fpvContainer.style.zIndex = '10';
+    fpvContainer.style.overflow = 'hidden';
+    
+    mountElement.appendChild(fpvContainer);
+    
+    console.log('FPV container created:', fpvContainer);
 
     const fpvCanvas = document.createElement('canvas');
-    fpvCanvas.width = 384;
-    fpvCanvas.height = 216;
-    fpvDisplay.appendChild(fpvCanvas);
+    fpvCanvas.style.width = '100%';
+    fpvCanvas.style.height = '100%';
+    fpvContainer.appendChild(fpvCanvas);
 
     const fpvRenderer = new THREE.WebGLRenderer({ canvas: fpvCanvas });
-    fpvRenderer.setSize(384, 216);
+    
+    // Function to update renderer size
+    const updateRendererSize = () => {
+        const width = fpvContainer.clientWidth;
+        const height = fpvContainer.clientHeight;
+        fpvCanvas.width = width;
+        fpvCanvas.height = height;
+        fpvRenderer.setSize(width, height, false);
+    };
 
-    return fpvRenderer;
+    // Initial size update
+    updateRendererSize();
+
+    // Add resize listener
+    window.addEventListener('resize', updateRendererSize);
+
+    return { fpvRenderer, updateRendererSize };
 }
 
 /**

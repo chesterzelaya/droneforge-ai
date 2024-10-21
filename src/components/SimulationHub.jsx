@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import * as styles from './SimulationHub.module.css';
 import GamepadHandler from '../utils/gamepadHandler';
+import { FaPlay, FaRedo, FaGlobe, FaRobot, FaChartLine } from 'react-icons/fa';
 
+/**
+ * @component SimulationHub
+ * @description A sleek sidebar component providing navigation and status for the drone simulation.
+ */
 const SimulationHub = () => {
   const [gamepadConnected, setGamepadConnected] = useState(false);
 
@@ -12,28 +17,43 @@ const SimulationHub = () => {
       setGamepadConnected(gamepadHandler.connected);
     };
 
-    // Check connection status initially and set up an interval to check regularly
     checkGamepadConnection();
     const intervalId = setInterval(checkGamepadConnection, 1000);
 
-    return () => {
-      clearInterval(intervalId);
-    };
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
     <div className={styles.hub}>
-      <h2 className={styles.title}>Simulation Hub</h2>
-      <nav className={styles.nav}>
-        <button className={styles.navButton}>Start Simulation</button>
-        <button className={styles.navButton}>Reset Simulation</button>
-        <button className={styles.navButton}>Change Environment</button>
-        <button className={styles.navButton}>Drone Settings</button>
-        <button className={styles.navButton}>Export Data</button>
-      </nav>
-      <div className={styles.gamepadStatus}>
-        <div className={`${styles.statusIndicator} ${gamepadConnected ? styles.connected : styles.disconnected}`}>
-          {gamepadConnected ? 'Controller Connected' : 'Controller Disconnected'}
+      <div className={styles.glowBackground}></div>
+      <div className={styles.content}>
+        <h2 className={styles.title}>DF</h2>
+        <nav className={styles.nav}>
+          <button className={styles.navButton} title="Initialize Simulation">
+            <FaPlay />
+            <span className={styles.buttonText}>Initialize</span>
+          </button>
+          <button className={styles.navButton} title="Reset Parameters">
+            <FaRedo />
+            <span className={styles.buttonText}>Reset</span>
+          </button>
+          <button className={styles.navButton} title="Modify Environment">
+            <FaGlobe />
+            <span className={styles.buttonText}>Environment</span>
+          </button>
+          <button className={styles.navButton} title="Drone Configuration">
+            <FaRobot />
+            <span className={styles.buttonText}>Configure</span>
+          </button>
+          <button className={styles.navButton} title="Export Telemetry">
+            <FaChartLine />
+            <span className={styles.buttonText}>Telemetry</span>
+          </button>
+        </nav>
+        <div className={styles.gamepadStatus}>
+          <div className={`${styles.statusIndicator} ${gamepadConnected ? styles.connected : styles.disconnected}`}>
+            {gamepadConnected ? 'Controller Connected' : 'Controller Disconnected'}
+          </div>
         </div>
       </div>
     </div>

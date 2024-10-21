@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useContext } from 'react';
 import * as THREE from 'three';
 import DroneScene from '../scenes/DroneScene';
-import DroneControls from '../controls/DroneControls';
-import PhysicsEngine from '../physics/PhysicsEngine';
+import DroneControls from '../controls/droneControls';
+import PhysicsEngine from '../physics/physicsEngine';
 import {
   createPositionDisplay,
   updatePositionDisplay,
@@ -22,6 +22,15 @@ import {
 import { runInferenceOnFrameCapture } from '../inference/modelHelper';
 import { LoadingContext } from '../context/LoadingContext';
 
+/**
+ * @component Simulation
+ * @description A React component that renders a 3D drone simulation using Three.js.
+ * It includes a main view, First Person View (FPV), axes display, and various UI elements
+ * for displaying drone status and controls.
+ * 
+ * @example
+ * <Simulation />
+ */
 const Simulation = () => {
   const mountRef = useRef(null);
   const fpvMountRef = useRef(null);
@@ -34,16 +43,22 @@ const Simulation = () => {
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // Initialize Three.js Renderer
+    /**
+     * Initializes the Three.js renderer and sets up the main scene.
+     * @type {THREE.WebGLRenderer}
+     */
     addLog('Initializing Three.js Renderer...');
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for softer shadows
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mountRef.current.appendChild(renderer.domElement);
     addLog('Three.js Renderer initialized.');
 
-    // Initialize Scene and Camera
+    /**
+     * Sets up the main camera for the drone scene.
+     * @type {THREE.PerspectiveCamera}
+     */
     addLog('Initializing Drone Scene...');
     const scene = new DroneScene(addLog);
     const camera = new THREE.PerspectiveCamera(
@@ -52,11 +67,15 @@ const Simulation = () => {
       0.1,
       1000
     );
-    camera.position.set(0, 1, -3); // Moved even closer to the drone
+    camera.position.set(0, 1, -3);
     camera.lookAt(0, 0, 0);
     addLog('Drone Scene and Camera initialized.');
 
-    // Initialize Controls and Physics
+    /**
+     * Initializes drone controls and physics engine.
+     * @type {DroneControls}
+     * @type {PhysicsEngine}
+     */
     addLog('Initializing Drone Controls...');
     const controls = new DroneControls();
     addLog('Drone Controls initialized.');
@@ -77,7 +96,9 @@ const Simulation = () => {
       addLog(`Error initializing Drone Scene: ${error.message}`);
     });
 
-    // Initialize UI Elements
+    /**
+     * Creates and sets up various UI elements for the simulation.
+     */
     addLog('Creating UI Elements...');
     const positionDisplay = createPositionDisplay();
     mountRef.current.appendChild(positionDisplay);
@@ -89,6 +110,10 @@ const Simulation = () => {
       addLog('FPV Renderer created.');
     }
 
+    /**
+     * Sets up the axes display for showing drone orientation.
+     * @type {THREE.WebGLRenderer}
+     */
     const axesRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     axesRenderer.setSize(100, 100);
     if (axesMountRef.current) {
@@ -103,6 +128,9 @@ const Simulation = () => {
     axesScene.add(axesHelper);
     addLog('Axes Scene and Helper initialized.');
 
+    /**
+     * Creates control display for showing drone control inputs.
+     */
     const controlDisplay = document.createElement('div');
     controlDisplay.style.position = 'absolute';
     controlDisplay.style.top = '10px';
@@ -134,6 +162,9 @@ const Simulation = () => {
     const stats = createPerformanceStats();
     addLog('Performance Stats created.');
 
+    /**
+     * Handles window resize events to update camera and renderer.
+     */
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -142,6 +173,10 @@ const Simulation = () => {
 
     window.addEventListener('resize', handleResize);
 
+    /**
+     * Main animation loop for the simulation.
+     * @param {number} time - The current timestamp.
+     */
     const animate = (time) => {
       requestAnimationFrame(animate);
       stats.begin();
@@ -207,10 +242,14 @@ const Simulation = () => {
     };
   }, [addLog]);
 
-  // Helper Functions to Update Camera Positions
+  /**
+   * Updates the main camera position relative to the drone.
+   * @param {THREE.PerspectiveCamera} camera - The main camera.
+   * @param {THREE.Object3D} drone - The drone object.
+   */
   const updateCameraPosition = (camera, drone) => {
     if (drone) {
-      const cameraOffset = new THREE.Vector3(0, 1, -3); // Adjusted offset for closer view
+      const cameraOffset = new THREE.Vector3(0, 1, -3);
       const rotatedOffset = cameraOffset.clone().applyQuaternion(drone.quaternion);
       camera.position.set(
         drone.position.x + rotatedOffset.x,
@@ -221,6 +260,11 @@ const Simulation = () => {
     }
   };
 
+  /**
+   * Updates the FPV camera position and orientation.
+   * @param {THREE.WebGLRenderer} fpvRenderer - The FPV renderer.
+   * @param {THREE.Object3D} drone - The drone object.
+   */
   const updateFPVCameraPosition = (fpvRenderer, drone) => {
     if (drone) {
       const fpvCamera = new THREE.PerspectiveCamera(
@@ -241,12 +285,17 @@ const Simulation = () => {
     }
   };
 
+  /**
+   * Updates the control bars display with current control inputs.
+   * @param {Object} controlBars - The control bar elements.
+   * @param {Object} channels - The current control input values.
+   */
   const updateControlBarsDisplay = (controlBars, channels) => {
     const { roll, pitch, yaw, throttle } = channels;
-    updateControlBar(controlBars.roll, roll * 1500 + 1500); // Convert back to 0-3000 range
-    updateControlBar(controlBars.pitch, pitch * 1500 + 1500); // Convert back to 0-3000 range
-    updateControlBar(controlBars.yaw, yaw * 1500 + 1500); // Convert back to 0-3000 range
-    updateControlBar(controlBars.throttle, throttle * 3000); // Convert back to 0-3000 range
+    updateControlBar(controlBars.roll, roll * 1500 + 1500);
+    updateControlBar(controlBars.pitch, pitch * 1500 + 1500);
+    updateControlBar(controlBars.yaw, yaw * 1500 + 1500);
+    updateControlBar(controlBars.throttle, throttle * 3000);
   };
 
   return (

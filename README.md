@@ -55,4 +55,3 @@ We welcome contributions! Whether you're fixing bugs, adding features, or improv
 
 We aim to democratize drone AI, drive innovation, educate, and enable transformative applications. Join us in shaping the future of intelligent drone technology.
 
----

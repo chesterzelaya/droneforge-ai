@@ -11,36 +11,36 @@ class DroneControls {
      * Initializes the DroneControls with default values and sets up input handlers.
      */
     constructor() {
-      /**
-       * @property {Object} channels - Stores the current values for each control channel.
-       * @property {number} channels.roll - Roll control value (0-3000).
-       * @property {number} channels.pitch - Pitch control value (0-3000).
-       * @property {number} channels.yaw - Yaw control value (0-3000).
-       * @property {number} channels.throttle - Throttle control value (0-3000).
-       */
-      this.channels = {
-        roll: 1500,
-        pitch: 1500,
-        yaw: 1500,
-        throttle: 0, // Initialize throttle to 0
-      };
+        /**
+         * @property {Object} channels - Stores the current values for each control channel.
+         * @property {number} channels.roll - Roll control value (0-3000).
+         * @property {number} channels.pitch - Pitch control value (0-3000).
+         * @property {number} channels.yaw - Yaw control value (0-3000).
+         * @property {number} channels.throttle - Throttle control value (0-3000).
+         */
+        this.channels = {
+            roll: 1500,
+            pitch: 1500,
+            yaw: 1500,
+            throttle: 0,
+        };
 
-      /**
-       * @property {Object} keyStates - Tracks the current state of keyboard inputs.
-       */
-      this.keyStates = {};
+        /**
+         * @property {Object} keyStates - Tracks the current state of keyboard inputs.
+         */
+        this.keyStates = {};
 
-      /**
-       * @property {number} controlRate - Rate of change for keyboard controls (pixels per frame).
-       */
-      this.controlRate = 10; // Increased for more responsive keyboard control
+        /**
+         * @property {number} controlRate - Rate of change for keyboard controls (pixels per frame).
+         */
+        this.controlRate = 10;
 
-      /**
-       * @property {GamepadHandler} gamepadHandler - Handles gamepad input.
-       */
-      this.gamepadHandler = new GamepadHandler();
+        /**
+         * @property {GamepadHandler} gamepadHandler - Handles gamepad input.
+         */
+        this.gamepadHandler = new GamepadHandler();
 
-      this.initControls();
+        this.initControls();
     }
 
     /**
@@ -49,8 +49,8 @@ class DroneControls {
      * Initializes event listeners for keyboard input.
      */
     initControls() {
-      document.addEventListener('keydown', this.onKeyDown.bind(this));
-      document.addEventListener('keyup', this.onKeyUp.bind(this));
+        document.addEventListener('keydown', this.onKeyDown.bind(this));
+        document.addEventListener('keyup', this.onKeyUp.bind(this));
     }
 
     /**
@@ -60,7 +60,7 @@ class DroneControls {
      * Handles keydown events, updating the keyStates object.
      */
     onKeyDown(event) {
-      this.keyStates[event.code] = true;
+        this.keyStates[event.code] = true;
     }
 
     /**
@@ -70,7 +70,7 @@ class DroneControls {
      * Handles keyup events, updating the keyStates object.
      */
     onKeyUp(event) {
-      this.keyStates[event.code] = false;
+        this.keyStates[event.code] = false;
     }
 
     /**
@@ -80,8 +80,8 @@ class DroneControls {
      * This method should be called once per frame in the main game loop.
      */
     update() {
-      this.gamepadHandler.update();
-      this.updateControlChannels();
+        this.gamepadHandler.update();
+        this.updateControlChannels();
     }
 
     /**
@@ -90,16 +90,26 @@ class DroneControls {
      * Updates the control channels based on gamepad or keyboard input.
      */
     updateControlChannels() {
-      const gamepadAxes = this.gamepadHandler.getAxes();
+        const gamepadAxes = this.gamepadHandler.getAxes();
 
-      if (this.gamepadHandler.connected) {
-        // Use gamepad input directly
-        this.channels.roll = this.clampValue(gamepadAxes[0], 0, 3000);
-        this.channels.pitch = this.clampValue(gamepadAxes[1], 0, 3000);
-        this.channels.yaw = this.clampValue(gamepadAxes[2], 0, 3000);
-        this.channels.throttle = this.clampValue(gamepadAxes[3], 0, 3000);
-      } else {
-        // Use keyboard input with swapped controls
+        if (this.gamepadHandler.connected) {
+            // Use gamepad input directly
+            this.channels.roll = this.clampValue(gamepadAxes[0], 0, 3000);
+            this.channels.pitch = this.clampValue(gamepadAxes[1], 0, 3000);
+            this.channels.yaw = this.clampValue(gamepadAxes[2], 0, 3000);
+            this.channels.throttle = this.clampValue(gamepadAxes[3], 0, 3000);
+        } else {
+            // Use keyboard input
+            this.updateKeyboardControls();
+        }
+    }
+
+    /**
+     * @method updateKeyboardControls
+     * @private
+     * Updates control channels based on keyboard input.
+     */
+    updateKeyboardControls() {
         if (this.keyStates['KeyA']) this.channels.yaw = Math.max(0, this.channels.yaw - this.controlRate);
         if (this.keyStates['KeyD']) this.channels.yaw = Math.min(3000, this.channels.yaw + this.controlRate);
         if (this.keyStates['ArrowRight']) this.channels.pitch = Math.min(3000, this.channels.pitch + this.controlRate);
@@ -109,12 +119,19 @@ class DroneControls {
         if (this.keyStates['KeyW']) this.channels.throttle = Math.min(3000, this.channels.throttle + this.controlRate);
         if (this.keyStates['KeyS']) this.channels.throttle = Math.max(0, this.channels.throttle - this.controlRate);
 
-        // Gradually return controls to center when keys are not pressed
+        this.centerUnusedControls();
+    }
+
+    /**
+     * @method centerUnusedControls
+     * @private
+     * Gradually returns unused controls to their center positions.
+     */
+    centerUnusedControls() {
         if (!this.keyStates['KeyA'] && !this.keyStates['KeyD']) this.channels.yaw = this.moveTowardsCenter(this.channels.yaw);
         if (!this.keyStates['ArrowRight'] && !this.keyStates['ArrowLeft']) this.channels.pitch = this.moveTowardsCenter(this.channels.pitch);
         if (!this.keyStates['ArrowDown'] && !this.keyStates['ArrowUp']) this.channels.roll = this.moveTowardsCenter(this.channels.roll);
         if (!this.keyStates['KeyW'] && !this.keyStates['KeyS']) this.channels.throttle = this.moveTowardsZero(this.channels.throttle);
-      }
     }
 
     /**
@@ -127,12 +144,7 @@ class DroneControls {
      * Gradually moves a control value towards its center position.
      */
     moveTowardsCenter(value, center = 1500, rate = 5) {
-      if (value > center) {
-        return Math.max(center, value - rate);
-      } else if (value < center) {
-        return Math.min(center, value + rate);
-      }
-      return value;
+        return value > center ? Math.max(center, value - rate) : Math.min(center, value + rate);
     }
 
     /**
@@ -144,7 +156,7 @@ class DroneControls {
      * Gradually moves a control value towards zero.
      */
     moveTowardsZero(value, rate = 5) {
-      return Math.max(0, value - rate);
+        return Math.max(0, value - rate);
     }
 
     /**
@@ -157,7 +169,7 @@ class DroneControls {
      * Clamps a value between a minimum and maximum.
      */
     clampValue(value, min, max) {
-      return Math.max(min, Math.min(max, value));
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
@@ -168,12 +180,12 @@ class DroneControls {
      * and 0 to 1 for throttle.
      */
     getControlInputs() {
-      return {
-        roll: (this.channels.roll - 1500) / 1500,      // -1 to 1
-        pitch: (this.channels.pitch - 1500) / 1500,    // -1 to 1
-        yaw: (this.channels.yaw - 1500) / 1500,        // -1 to 1
-        throttle: this.channels.throttle / 3000,       // 0 to 1
-      };
+        return {
+            roll: (this.channels.roll - 1500) / 1500,      // -1 to 1
+            pitch: (this.channels.pitch - 1500) / 1500,    // -1 to 1
+            yaw: (this.channels.yaw - 1500) / 1500,        // -1 to 1
+            throttle: this.channels.throttle / 3000,       // 0 to 1
+        };
     }
 }
 

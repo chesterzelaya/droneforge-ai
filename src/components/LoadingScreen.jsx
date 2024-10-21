@@ -2,6 +2,17 @@ import React, { useEffect, useRef } from 'react';
 import './LoadingScreen.css'; // Ensure this path is correct
 import * as THREE from 'three';
 
+/**
+ * @component LoadingScreen
+ * @description A React component that displays a loading screen with a 3D animated orb and log messages.
+ * It uses Three.js for rendering the 3D orb and custom shaders for visual effects.
+ * 
+ * @param {Object} props - The component props.
+ * @param {string[]} props.logs - An array of log messages to display.
+ * 
+ * @example
+ * <LoadingScreen logs={['Initializing...', 'Loading assets...', 'Ready!']} />
+ */
 const LoadingScreen = ({ logs }) => {
   const orbRef = useRef(null);
   const rendererRef = useRef(null);
@@ -10,7 +21,10 @@ const LoadingScreen = ({ logs }) => {
   useEffect(() => {
     if (!orbRef.current) return;
 
-    // Set up the Three.js scene
+    /**
+     * Sets up the Three.js scene, camera, and renderer.
+     * @type {THREE.Scene}
+     */
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -18,7 +32,10 @@ const LoadingScreen = ({ logs }) => {
     orbRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // Create a crystal-like geometry
+    /**
+     * Creates a crystal-like geometry with custom shaders.
+     * @type {THREE.Mesh}
+     */
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -69,7 +86,10 @@ const LoadingScreen = ({ logs }) => {
 
     camera.position.z = 2.5;
 
-    // Mouse movement effect
+    /**
+     * Handles mouse movement to update the orb's appearance.
+     * @param {MouseEvent} event - The mouse move event.
+     */
     const onMouseMove = (event) => {
       const targetX = (event.clientX / window.innerWidth) * 2 - 1;
       const targetY = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -79,7 +99,10 @@ const LoadingScreen = ({ logs }) => {
 
     window.addEventListener('mousemove', onMouseMove);
 
-    // Animation loop
+    /**
+     * Animation loop for continuous rendering.
+     * @param {number} time - The current timestamp.
+     */
     const animate = (time) => {
       requestAnimationFrame(animate);
       orb.rotation.x += 0.001;
@@ -91,7 +114,7 @@ const LoadingScreen = ({ logs }) => {
 
     animate();
 
-    // Cleanup on unmount
+    // Cleanup function
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       if (orbRef.current && rendererRef.current) {

@@ -33,7 +33,6 @@ class GamepadHandler {
       console.log('Gamepad disconnected:', e.gamepad.id);
       this.connected = false;
       this.gamepad = null;
-      this.updateConnectionVisualizer();
     });
   }
 

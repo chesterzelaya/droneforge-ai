@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import * as styles from './SimulationHub.module.css';
 import GamepadHandler from '../utils/gamepadHandler';
-import { FaPlay, FaRedo, FaGlobe, FaRobot, FaChartLine } from 'react-icons/fa';
+import { FaBrain, FaRedo, FaGlobe, FaRobot, FaChartLine } from 'react-icons/fa';
 
 /**
  * @component SimulationHub
@@ -29,9 +29,9 @@ const SimulationHub = () => {
       <div className={styles.content}>
         <h2 className={styles.title}>DF</h2>
         <nav className={styles.nav}>
-          <button className={styles.navButton} title="Initialize Simulation">
-            <FaPlay />
-            <span className={styles.buttonText}>Initialize</span>
+          <button className={styles.navButton} title="Load AI Models">
+            <FaBrain />
+            <span className={styles.buttonText}>Models</span>
           </button>
           <button className={styles.navButton} title="Reset Parameters">
             <FaRedo />

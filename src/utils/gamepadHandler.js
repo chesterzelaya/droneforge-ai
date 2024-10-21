@@ -15,7 +15,6 @@ class GamepadHandler {
     this.buttons = [];
 
     this.setupEventListeners();
-    this.createConnectionVisualizer();
   }
 
   /**
@@ -28,7 +27,6 @@ class GamepadHandler {
       console.log('Gamepad connected:', e.gamepad.id);
       this.connected = true;
       this.gamepad = e.gamepad;
-      this.updateConnectionVisualizer();
     });
 
     window.addEventListener('gamepaddisconnected', (e) => {

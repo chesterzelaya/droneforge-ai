@@ -101,8 +101,8 @@ const Simulation = () => {
     mountRef.current.appendChild(positionDisplay);
     addLog('Position Display created.');
 
-    const fpvRenderer = createFPVDisplay();
-    addLog('FPV Renderer created.');
+    const fpvRenderer = createFPVDisplay(mountRef.current);
+    addLog('FPV Display created.');
 
     /**
      * Creates and sets up the axes view for showing drone orientation.
@@ -219,6 +219,10 @@ const Simulation = () => {
         mountRef.current.removeChild(controlDisplay);
         mountRef.current.removeChild(compass);
         mountRef.current.removeChild(axesView.axesRenderer.domElement);
+        const fpvDisplay = mountRef.current.querySelector('div');
+        if (fpvDisplay) {
+          mountRef.current.removeChild(fpvDisplay);
+        }
       }
       document.body.removeChild(stats.dom);
       addLog('Cleanup completed on unmount.');

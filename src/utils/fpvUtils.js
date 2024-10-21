@@ -5,9 +5,10 @@ import { pixelDataToTensor } from './imageHelper';
 /**
  * @function createFPVDisplay
  * @description Creates the First Person View display and returns the FPV renderer.
+ * @param {HTMLElement} mountElement - The element to mount the FPV display to.
  * @returns {THREE.WebGLRenderer} The FPV renderer.
  */
-export function createFPVDisplay() {
+export function createFPVDisplay(mountElement) {
     console.log('Creating FPV display...');
     const fpvDisplay = document.createElement('div');
     fpvDisplay.style.position = 'absolute';
@@ -16,7 +17,7 @@ export function createFPVDisplay() {
     fpvDisplay.style.width = '384px';
     fpvDisplay.style.height = '216px';
     fpvDisplay.style.border = '2px solid white';
-    document.body.appendChild(fpvDisplay);
+    mountElement.appendChild(fpvDisplay);
     console.log('FPV display created:', fpvDisplay);
 
     const fpvCanvas = document.createElement('canvas');

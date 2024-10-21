@@ -85,7 +85,8 @@ export const createCompass = () => {
   const compassDiv = document.createElement('div');
   compassDiv.style.position = 'absolute';
   compassDiv.style.top = '10px';
-  compassDiv.style.left = '220px';
+  compassDiv.style.left = '50%';
+  compassDiv.style.transform = 'translateX(-50%)';
   compassDiv.style.width = '100px';
   compassDiv.style.height = '100px';
   compassDiv.style.border = '2px solid white';
@@ -94,6 +95,8 @@ export const createCompass = () => {
   compassDiv.style.display = 'flex';
   compassDiv.style.alignItems = 'center';
   compassDiv.style.justifyContent = 'center';
+  compassDiv.style.color = 'white';
+  compassDiv.style.fontFamily = 'Arial, sans-serif';
   compassDiv.innerText = 'Compass';
   return compassDiv;
 };

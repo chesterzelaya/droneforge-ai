@@ -11,6 +11,8 @@ import {
   createPerformanceStats,
   createCompass,
   updateCompass,
+  createAxesView,
+  updateAxesView,
 } from '../utils/helperFunctions';
 import {
   createFPVDisplay,
@@ -33,10 +35,6 @@ import { LoadingContext } from '../context/LoadingContext';
  */
 const Simulation = () => {
   const mountRef = useRef(null);
-  const axesMountRef = useRef(null);
-  const controlBarsRef = useRef(null);
-  const compassRef = useRef(null);
-  const statsRef = useRef(null);
   const { addLog } = useContext(LoadingContext);
 
   useEffect(() => {
@@ -107,22 +105,11 @@ const Simulation = () => {
     addLog('FPV Renderer created.');
 
     /**
-     * Sets up the axes display for showing drone orientation.
-     * @type {THREE.WebGLRenderer}
+     * Creates and sets up the axes view for showing drone orientation.
      */
-    const axesRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    axesRenderer.setSize(100, 100);
-    if (axesMountRef.current) {
-      axesMountRef.current.appendChild(axesRenderer.domElement);
-      addLog('Axes Renderer created.');
-    }
-    const axesScene = new THREE.Scene();
-    const axesCamera = new THREE.PerspectiveCamera(10, 1, 0.1, 10);
-    axesCamera.position.set(0, 0, 3);
-    axesCamera.lookAt(0, 0, 0);
-    const axesHelper = new THREE.AxesHelper(2);
-    axesScene.add(axesHelper);
-    addLog('Axes Scene and Helper initialized.');
+    addLog('Creating Axes View...');
+    const axesView = createAxesView(mountRef.current);
+    addLog('Axes View created.');
 
     /**
      * Creates control display for showing drone control inputs.
@@ -200,8 +187,8 @@ const Simulation = () => {
       renderer.render(scene, camera);
       fpvRenderer.render(scene, camera);
       if (scene.drone) {
-        axesScene.quaternion.copy(scene.drone.quaternion);
-        axesRenderer.render(axesScene, axesCamera);
+        axesView.axesScene.quaternion.copy(scene.drone.quaternion);
+        axesView.axesRenderer.render(axesView.axesScene, axesView.axesCamera);
       }
 
       // Update UI elements
@@ -210,6 +197,11 @@ const Simulation = () => {
         updateCompass(compass, scene.drone.quaternion);
       }
       updateControlBarsDisplay(controlBars, controls.getControlInputs());
+
+      // Update axes view
+      if (scene.drone) {
+        updateAxesView(axesView, scene.drone.quaternion);
+      }
 
       stats.end();
     };
@@ -226,9 +218,7 @@ const Simulation = () => {
         mountRef.current.removeChild(positionDisplay);
         mountRef.current.removeChild(controlDisplay);
         mountRef.current.removeChild(compass);
-      }
-      if (axesMountRef.current) {
-        axesMountRef.current.removeChild(axesRenderer.domElement);
+        mountRef.current.removeChild(axesView.axesRenderer.domElement);
       }
       document.body.removeChild(stats.dom);
       addLog('Cleanup completed on unmount.');
@@ -292,10 +282,7 @@ const Simulation = () => {
   };
 
   return (
-    <>
-      <div ref={mountRef} />
-      <div ref={axesMountRef} />
-    </>
+    <div ref={mountRef} />
   );
 };
 

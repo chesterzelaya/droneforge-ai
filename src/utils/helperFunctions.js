@@ -110,3 +110,38 @@ export const updateCompass = (compass, quaternion) => {
     compass.innerText = `Yaw: ${yaw.toFixed(2)}°`;
   }
 };
+
+/**
+ * Creates and initializes the axes view for showing drone orientation.
+ * @param {HTMLElement} mountElement - The element to mount the axes renderer to.
+ * @returns {Object} An object containing the axes renderer, scene, camera, and helper.
+ */
+export const createAxesView = (mountElement) => {
+  const axesRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  axesRenderer.setSize(100, 100);
+  axesRenderer.domElement.style.position = 'absolute';
+  axesRenderer.domElement.style.bottom = '10px';
+  axesRenderer.domElement.style.left = '10px';
+  mountElement.appendChild(axesRenderer.domElement);
+
+  const axesScene = new THREE.Scene();
+  const axesCamera = new THREE.PerspectiveCamera(10, 1, 0.1, 10);
+  axesCamera.position.set(0, 0, 3);
+  axesCamera.lookAt(0, 0, 0);
+  const axesHelper = new THREE.AxesHelper(2);
+  axesScene.add(axesHelper);
+
+  return { axesRenderer, axesScene, axesCamera, axesHelper };
+};
+
+/**
+ * Updates the axes view based on the drone's orientation.
+ * @param {Object} axesView - The axes view object returned by createAxesView.
+ * @param {THREE.Quaternion} quaternion - The drone's current orientation.
+ */
+export const updateAxesView = (axesView, quaternion) => {
+  if (axesView && quaternion) {
+    axesView.axesScene.quaternion.copy(quaternion);
+    axesView.axesRenderer.render(axesView.axesScene, axesView.axesCamera);
+  }
+};

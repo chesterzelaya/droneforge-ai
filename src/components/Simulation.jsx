@@ -35,6 +35,7 @@ import { LoadingContext } from '../context/LoadingContext';
  */
 const Simulation = () => {
   const mountRef = useRef(null);
+  const statsRef = useRef(null);
   const { addLog } = useContext(LoadingContext);
 
   useEffect(() => {
@@ -142,7 +143,13 @@ const Simulation = () => {
     mountRef.current.appendChild(compass);
     addLog('Compass created.');
 
+    /**
+     * Creates performance stats using Stats.js.
+     */
+    addLog('Creating Performance Stats...');
     const stats = createPerformanceStats();
+    statsRef.current = stats;
+    mountRef.current.appendChild(stats.dom);
     addLog('Performance Stats created.');
 
     /**
@@ -163,7 +170,9 @@ const Simulation = () => {
      */
     const animate = (time) => {
       requestAnimationFrame(animate);
-      stats.begin();
+      if (statsRef.current) {
+        statsRef.current.begin();
+      }
 
       const deltaTime = clock.getDelta();
 
@@ -204,7 +213,9 @@ const Simulation = () => {
         updateAxesView(axesView, scene.drone.quaternion);
       }
 
-      stats.end();
+      if (statsRef.current) {
+        statsRef.current.end();
+      }
     };
 
     const clock = new THREE.Clock();
@@ -224,8 +235,10 @@ const Simulation = () => {
         if (fpvDisplay) {
           mountRef.current.removeChild(fpvDisplay);
         }
+        if (statsRef.current) {
+          mountRef.current.removeChild(statsRef.current.dom);
+        }
       }
-      document.body.removeChild(stats.dom);
       addLog('Cleanup completed on unmount.');
     };
   }, [addLog]);

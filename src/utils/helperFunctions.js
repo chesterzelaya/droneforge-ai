@@ -70,10 +70,13 @@ export const updateControlBar = (controlBar, value) => {
  * @returns {Stats} The Stats instance.
  */
 export const createPerformanceStats = () => {
-  const Stats = require('stats.js'); // Ensure stats.js is installed
+  const Stats = require('stats.js');
   const stats = new Stats();
   stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-  document.body.appendChild(stats.dom);
+  stats.dom.style.position = 'absolute';
+  stats.dom.style.top = '0px';
+  stats.dom.style.left = '0px';
+  stats.dom.style.zIndex = '100'; // Ensure it's above other elements
   return stats;
 };
 

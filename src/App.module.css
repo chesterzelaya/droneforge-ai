@@ -1,11 +1,16 @@
 .appContainer {
   display: flex;
+  margin: 0;
+  padding: 0;
   height: 100vh;
+  width: 100vw;
   overflow: hidden;
 }
 
 .simulationContent {
   flex-grow: 1;
+  margin: 0;
+  padding: 0;
   position: relative;
   overflow: hidden;
 }

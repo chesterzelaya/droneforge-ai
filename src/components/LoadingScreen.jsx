@@ -26,7 +26,7 @@ const LoadingScreen = ({ logs }) => {
      * @type {THREE.Scene}
      */
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     orbRef.current.appendChild(renderer.domElement);
@@ -84,7 +84,7 @@ const LoadingScreen = ({ logs }) => {
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
-    camera.position.z = 2.5;
+    camera.position.z = 2.73;
 
     /**
      * Handles mouse movement to update the orb's appearance.

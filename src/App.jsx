@@ -54,7 +54,6 @@ const AppContent = () => {
         <SimulationHub />
         <div className={styles.simulationContent}>
           <Simulation />
-          <ModelSlider />
         </div>
       </div>
     </ErrorBoundary>

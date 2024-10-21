@@ -33,7 +33,6 @@ import { LoadingContext } from '../context/LoadingContext';
  */
 const Simulation = () => {
   const mountRef = useRef(null);
-  const fpvMountRef = useRef(null);
   const axesMountRef = useRef(null);
   const controlBarsRef = useRef(null);
   const compassRef = useRef(null);
@@ -105,10 +104,7 @@ const Simulation = () => {
     addLog('Position Display created.');
 
     const fpvRenderer = createFPVDisplay();
-    if (fpvMountRef.current) {
-      fpvMountRef.current.appendChild(fpvRenderer.domElement);
-      addLog('FPV Renderer created.');
-    }
+    addLog('FPV Renderer created.');
 
     /**
      * Sets up the axes display for showing drone orientation.
@@ -121,7 +117,7 @@ const Simulation = () => {
       addLog('Axes Renderer created.');
     }
     const axesScene = new THREE.Scene();
-    const axesCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 10);
+    const axesCamera = new THREE.PerspectiveCamera(10, 1, 0.1, 10);
     axesCamera.position.set(0, 0, 3);
     axesCamera.lookAt(0, 0, 0);
     const axesHelper = new THREE.AxesHelper(2);
@@ -231,9 +227,6 @@ const Simulation = () => {
         mountRef.current.removeChild(controlDisplay);
         mountRef.current.removeChild(compass);
       }
-      if (fpvMountRef.current) {
-        fpvMountRef.current.removeChild(fpvRenderer.domElement);
-      }
       if (axesMountRef.current) {
         axesMountRef.current.removeChild(axesRenderer.domElement);
       }
@@ -301,7 +294,6 @@ const Simulation = () => {
   return (
     <>
       <div ref={mountRef} />
-      <div ref={fpvMountRef} />
       <div ref={axesMountRef} />
     </>
   );

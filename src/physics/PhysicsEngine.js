@@ -135,7 +135,10 @@ class PhysicsEngine {
     const position = droneMesh.position;
     const quaternion = droneMesh.quaternion;
     
-    const dimensions = new this.Ammo.btVector3(0.5, 0.5, 0.5); // Half-extents
+    // Create a bounding box for the drone model
+    const box = new THREE.Box3().setFromObject(droneMesh);
+    const size = box.getSize(new THREE.Vector3());
+    const dimensions = new this.Ammo.btVector3(size.x / 2, size.y / 2, size.z / 2);
 
     const shape = new this.Ammo.btBoxShape(dimensions);
     const transform = new this.Ammo.btTransform();
@@ -150,9 +153,8 @@ class PhysicsEngine {
     const rbInfo = new this.Ammo.btRigidBodyConstructionInfo(this.droneMass, motionState, shape, localInertia);
     this.droneRigidBody = new this.Ammo.btRigidBody(rbInfo);
     
-    // Increase damping for stability
-    this.droneRigidBody.setDamping(0.7, 0.7); // Linear and angular damping
-    this.droneRigidBody.setActivationState(4); // DISABLE_DEACTIVATION
+    this.droneRigidBody.setDamping(0.7, 0.7);
+    this.droneRigidBody.setActivationState(4);
 
     this.physicsWorld.addRigidBody(this.droneRigidBody);
     this.rigidBodies.push({ mesh: droneMesh, body: this.droneRigidBody });

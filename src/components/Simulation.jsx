@@ -38,19 +38,21 @@ const Simulation = () => {
     addLog('Initializing Three.js Renderer...');
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Optional: for softer shadows
     mountRef.current.appendChild(renderer.domElement);
     addLog('Three.js Renderer initialized.');
 
     // Initialize Scene and Camera
     addLog('Initializing Drone Scene...');
-    const scene = new DroneScene(addLog); // Pass addLog here
+    const scene = new DroneScene(addLog);
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
-    camera.position.set(0, 5, -10);
+    camera.position.set(0, 1, -3); // Moved even closer to the drone
     camera.lookAt(0, 0, 0);
     addLog('Drone Scene and Camera initialized.');
 
@@ -140,15 +142,20 @@ const Simulation = () => {
 
     window.addEventListener('resize', handleResize);
 
-    const animate = () => {
+    const animate = (time) => {
       requestAnimationFrame(animate);
       stats.begin();
+
+      const deltaTime = clock.getDelta();
 
       // Update physics engine
       physicsEngine.update();
 
+      // Update drone scene (for animations)
+      scene.update(deltaTime);
+
       // Update controls with the drone's current orientation
-      if (scene.drone && scene.drone.quaternion) {
+      if (scene.drone) {
         controls.update(scene.drone.quaternion);
       } else {
         controls.update();
@@ -176,6 +183,7 @@ const Simulation = () => {
       stats.end();
     };
 
+    const clock = new THREE.Clock();
     animate();
     addLog('Animation loop started.');
 
@@ -202,7 +210,7 @@ const Simulation = () => {
   // Helper Functions to Update Camera Positions
   const updateCameraPosition = (camera, drone) => {
     if (drone) {
-      const cameraOffset = new THREE.Vector3(0, 5, -10);
+      const cameraOffset = new THREE.Vector3(0, 1, -3); // Adjusted offset for closer view
       const rotatedOffset = cameraOffset.clone().applyQuaternion(drone.quaternion);
       camera.position.set(
         drone.position.x + rotatedOffset.x,

@@ -15,6 +15,8 @@ class DroneScene extends THREE.Scene {
   constructor(addLog) {
     super();
     this.drone = null;
+    this.droneAnimations = [];
+    this.animationMixer = null;
     this.environment = null;
     this.addLog = addLog;
     this.addLog('DroneScene constructor: Scene initialized');
@@ -34,14 +36,19 @@ class DroneScene extends THREE.Scene {
       this.add(ambientLight);
       this.addLog('DroneScene init: Ambient light added');
 
-      // Add directional light
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      // Add directional light with shadows
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
       directionalLight.position.set(10, 10, 10);
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = 2048;
+      directionalLight.shadow.mapSize.height = 2048;
+      directionalLight.shadow.camera.near = 0.5;
+      directionalLight.shadow.camera.far = 500;
       this.add(directionalLight);
       this.addLog('DroneScene init: Directional light added');
 
-      // Create drone
-      this.createCubeDrone();
+      // Load drone model
+      await this.loadDroneModel();
 
       // Load environment
       await this.loadEnvironment();
@@ -52,26 +59,63 @@ class DroneScene extends THREE.Scene {
       this.addLog('DroneScene init: Skybox color set');
     } catch (error) {
       this.addLog(`DroneScene init: Initialization failed - ${error.message}`);
-      throw error; // Re-throw to allow higher-level handling
+      throw error;
     }
   }
 
-  /**
-   * @method createCubeDrone
-   * @private
-   * @description Creates a simple cube representation of the drone and adds it to the scene.
-   */
-  createCubeDrone() {
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-    this.drone = new THREE.Mesh(geometry, material);
-    this.drone.position.set(0, 5, 0);
+  async loadDroneModel() {
+    return new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('/draco/');
+      loader.setDRACOLoader(dracoLoader);
 
-    // Ensure the drone is facing north (negative Z-axis)
-    this.drone.rotation.y = 0;
+      loader.load(
+        '/assets/models/drone/comic_drone.glb',
+        (gltf) => {
+          this.drone = gltf.scene;
+          this.drone.scale.set(0.1, 0.1, 0.1);
+          this.drone.position.set(0, 5, 0);
 
-    this.add(this.drone);
-    this.addLog('DroneScene createCubeDrone: Drone created and added to scene');
+          // Traverse the drone model to ensure materials are properly applied
+          this.drone.traverse((child) => {
+            if (child.isMesh) {
+              // Ensure the material is using its map (texture)
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.needsUpdate = true;
+              }
+              
+              // Enable shadows for each mesh
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          this.add(this.drone);
+
+          // Set up animations
+          this.animationMixer = new THREE.AnimationMixer(this.drone);
+          this.droneAnimations = gltf.animations;
+          
+          // Play all animations
+          this.droneAnimations.forEach((clip) => {
+            const action = this.animationMixer.clipAction(clip);
+            action.play();
+          });
+
+          this.addLog('DroneScene loadDroneModel: Drone model and animations loaded successfully');
+          resolve();
+        },
+        (xhr) => {
+          this.addLog(`DroneScene loadDroneModel: ${(xhr.loaded / xhr.total) * 100}% loaded`);
+        },
+        (error) => {
+          this.addLog(`DroneScene loadDroneModel: An error occurred - ${error.message}`);
+          reject(error);
+        }
+      );
+    });
   }
 
   /**
@@ -107,6 +151,13 @@ class DroneScene extends THREE.Scene {
         }
       );
     });
+  }
+
+  update(deltaTime) {
+    // Update animations
+    if (this.animationMixer) {
+      this.animationMixer.update(deltaTime);
+    }
   }
 }
 

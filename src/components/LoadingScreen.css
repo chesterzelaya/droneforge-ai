@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 
+@font-face {
+  font-family: 'Horizon';
+  src: url('../../public/fonts/horizon-webfont.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .loading-container {
   position: fixed;
   top: 0;
@@ -12,7 +19,7 @@
   justify-content: center;
   align-items: center;
   color: #ffffff;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Horizon', sans-serif;
   overflow: hidden;
 }
 
@@ -56,6 +63,7 @@
   text-shadow: 0 0 10px rgba(0, 241, 53, 0.3),
                0 0 20px rgba(0, 241, 53, 0.2);
   animation: subtle-pulse 4s ease-in-out infinite alternate;
+  font-family: 'Horizon', sans-serif;
 }
 
 @keyframes subtle-pulse {

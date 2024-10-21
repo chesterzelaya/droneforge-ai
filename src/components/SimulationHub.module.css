@@ -6,22 +6,22 @@
 }
 
 .hub {
-  width: 80px;
+  width: 100px;
   height: 100vh;
   background-color: rgba(5, 10, 14, 0.8);
   color: #ffffff;
-  padding: 20px 10px;
+  padding: 20px 15px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   font-family: 'Horizon', sans-serif;
   position: relative;
   overflow: hidden;
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .hub:hover {
-  width: 200px;
+  width: 220px;
 }
 
 .glowBackground {
@@ -72,20 +72,21 @@
 }
 
 .navButton {
-  width: 60px;
-  height: 60px;
+  height: 70px;
   background-color: rgba(0, 241, 53, 0.1);
   border: 1px solid rgba(0, 241, 53, 0.3);
   color: #00F135;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 35px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   position: relative;
   overflow: hidden;
+  padding: 0 0 0 22px;
+  width: 70px;
 }
 
 .navButton::before {
@@ -101,7 +102,7 @@
     rgba(0, 241, 53, 0.2),
     transparent
   );
-  transition: 0.5s;
+  transition: 0.4s;
 }
 
 .navButton:hover::before {
@@ -111,25 +112,27 @@
 .navButton:hover {
   background-color: rgba(0, 241, 53, 0.2);
   box-shadow: 0 0 20px rgba(0, 241, 53, 0.3);
-  transform: scale(1.1);
 }
 
 .buttonText {
-  display: none;
-  margin-left: 10px;
-  font-size: 0.9rem;
+  position: absolute;
+  left: 70px;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.4s cubic-bezier(0.4, 0.0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
   white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .hub:hover .navButton {
   width: 100%;
-  border-radius: 30px;
-  justify-content: flex-start;
-  padding-left: 20px;
+  padding-left: 22px;
 }
 
 .hub:hover .buttonText {
-  display: inline;
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .gamepadStatus {
@@ -143,7 +146,7 @@
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

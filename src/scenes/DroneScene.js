@@ -71,10 +71,10 @@ class DroneScene extends THREE.Scene {
       loader.setDRACOLoader(dracoLoader);
 
       loader.load(
-        '/assets/models/drone/comic_drone.glb',
+        '/assets/models/drone/fpv.glb',
         (gltf) => {
           this.drone = gltf.scene;
-          this.drone.scale.set(0.1, 0.1, 0.1);
+          this.drone.scale.set(1, 1, 1);
           this.drone.position.set(0, 5, 0);
 
           // Traverse the drone model to ensure materials are properly applied
@@ -83,9 +83,18 @@ class DroneScene extends THREE.Scene {
               // Ensure the material is using its map (texture)
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.flipY = false; // GLB files typically don't need texture flipping
                 child.material.needsUpdate = true;
               }
               
+              // Apply these settings to other texture types if present
+              ['normalMap', 'roughnessMap', 'metalnessMap'].forEach(mapType => {
+                if (child.material[mapType]) {
+                  child.material[mapType].colorSpace = THREE.LinearSRGBColorSpace;
+                  child.material[mapType].flipY = false;
+                }
+              });
+
               // Enable shadows for each mesh
               child.castShadow = true;
               child.receiveShadow = true;
